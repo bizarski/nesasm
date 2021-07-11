@@ -1,12 +1,10 @@
-  .inesprg 2   ; 2x 16KB PRG code (banks 0, 1, 2, 3)
+  .inesprg 4   ; 4x 16KB PRG code (banks 0, 1, 2, 3); UNROM has 4 or 8 banks
   .ineschr 1   ; 1x  8KB CHR data (bank 4)
-  .inesmap 0   ; mapper 0 = NROM, no bank swapping
+  .inesmap 2   ; mapper 0 = NROM, no bank swapping; 2 = UNROM
   .inesmir 1   ; background mirroring
 
 ;; DECLARE SOME VARIABLES HERE
   .rsset $0000  ;;start variables at ram location 0
-
-gamestate		.rs 1  ; gamestate (0=title, 1=playing, 2=pause, 3=gameover)
 
 buttons1   		.rs 1  ; player 1 gamepad buttons, one bit per button
 buttonlatch		.rs 1
@@ -24,13 +22,15 @@ isSongSpritesShown  .rs 1
 keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
 
 ;;;;;;;;;;;;;;;;;
-
-STATETITLE		= $00  ; displaying title screen
-
 PPU_SETUP = %00011110
 
 TRACK_1 = $2D
 TRACK_2 = $35
+
+INIT_ADDRESS = $A999
+PLAY_ADDRESS = $A99C
+LOAD_ADDRESS_TRACK_1 = $A0A8
+LOAD_ADDRESS_TRACK_2 = $A31B
 
 BTN_LEFT = %00000010
 BTN_RIGHT = %00000001
@@ -39,8 +39,8 @@ BTN_DOWN = %00000100
 BTN_START = %00010000
 BTN_SELECT = %00100000
 
-SPRITE_SPR_LEGS = $0211
-SPRITE_SPR_HEAD = $0201
+SPRITE_SPR_LEGS = $0411
+SPRITE_SPR_HEAD = $0401
 SPRITE_SPR_Y = $A0
 SPRITE_SPR_X = $80
 
@@ -53,18 +53,47 @@ SPRITE_ALDO_Y = $87
 SPRITE_GUIN_X = $5E
 SPRITE_GUIN_Y = $7B
 
-SPRITE_BASS_Y = $021C
+SPRITE_BASS_Y = $041C
 
-SPRITE_GUITAR_Y = $024C
+SPRITE_GUITAR_Y = $044C
 
-SPRITE_ARROW = $0218
+SPRITE_ARROW = $0418
 
+initMusic = $07FF
+playingSongNumber = $07FE
 
 ;;;;;;;;;;;;;;;
 
     
-  .bank 0
-  .org $8000 
+	.code
+	.bank 0	; 1/4 8k-9999
+	.org $8000
+
+	.bank 1 ; 1/4 Ak-B999
+	.org $A000
+	.org LOAD_ADDRESS_TRACK_2
+	.incbin "Tsoy.nsf"	; test
+
+	.bank 2	; 2/4 8k-9999
+	.org $8000
+
+	.bank 3 ; 2/4 Ak-B999
+  .org $A000
+  .org LOAD_ADDRESS_TRACK_1
+	.incbin "test.nsf"
+	
+
+	.bank 4	; 3/4 8k-9999
+	.org $8000
+
+	.bank 5 ; 3/4 Ak-B999
+	.org $A000
+
+	.bank 6 ; (4/4 last bank/fixed) $C000
+	.incbin "samples.bin"
+
+	.bank 7 ; (4/4 last bank/fixed) $E000
+	.org $E000
   
   
 RESET:
@@ -126,7 +155,7 @@ LoadSprites:
   LDX #$00              ; start at 0
 LoadSpritesLoop:
   LDA sprites, x        ; load data from address (sprites +  x)
-  STA $0200, x          ; store into RAM address ($0200 + x)
+  STA $0400, x          ; store into RAM address ($0400 + x)
   INX                   ; X = X + 1
   CPX #$A4              ; Compare X 
   BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
@@ -134,9 +163,9 @@ LoadSpritesLoop:
 				
   JSR LoadBackground 				
   
-; Set starting game state
-  LDA #STATETITLE
-  STA gamestate
+  LDA #$00
+  STA playingSongNumber
+  STA initMusic
   
   LDA #TRACK_1
   STA currentSong
@@ -289,8 +318,8 @@ NMI:
   JSR ReadController1  ;;get the current button data for player 1
   
 GameEngine:  
-  LDA gamestate
-  CMP #STATETITLE
+  LDA playingSongNumber
+  CMP #$00
   BNE GameEngine_NotTitle	; need to use JMP here because relative addressing used by BEQ goes out of range
   JMP EngineTitle			; game is displaying title screen
 GameEngine_NotTitle:
@@ -299,9 +328,9 @@ GameEngineDone:
   RTI             ; return from interrupt
  
 ;;;;;;;;;;;;;;  
+  .include "service_audio.asm"
 
-
-EngineTitle: 
+EngineTitle:
   JSR HideAllSprites
   LDA currentSong 
   STA SPRITE_ARROW
@@ -316,7 +345,13 @@ EnginePlaying:
   JSR AdvanceAnimationFrame 
   JSR AnimateGuitars
   JSR EnginePlaying_ReactToInput
-  
+
+  LDX initMusic
+  CPX #$01
+  BEQ InitTrack
+
+  JSR PLAY_ADDRESS
+
   JMP GameEngineDone
 
 HideAllSprites: 
@@ -326,7 +361,7 @@ HideAllSprites:
   LDX #$00
 HideSpritesLoop:
   LDA #$F0
-  STA $0200, x
+  STA $0400, x
   INX
   INX
   INX  
@@ -372,24 +407,24 @@ DontShowSprites:
   RTS 
   
 ShowMetaSpriteX: 
-  STA ($0200+3), x
-  STA ($0200+3+8), x
-  STA ($0200+3+16), x
+  STA ($0400+3), x
+  STA ($0400+3+8), x
+  STA ($0400+3+16), x
   CLC 
   ADC #$08
-  STA ($0200+3+4), x
-  STA ($0200+3+12), x
-  STA ($0200+3+20), x
+  STA ($0400+3+4), x
+  STA ($0400+3+12), x
+  STA ($0400+3+20), x
 ShowMetaSpriteY:
-  STA $0200, x
-  STA ($0200+4), x
+  STA $0400, x
+  STA ($0400+4), x
   CLC 
   ADC #$08
-  STA ($0200+8), x
-  STA ($0200+12), x
+  STA ($0400+8), x
+  STA ($0400+12), x
   ADC #$08
-  STA ($0200+16), x
-  STA ($0200+20), x
+  STA ($0400+16), x
+  STA ($0400+20), x
   RTS 
 
 ReadController1:
@@ -480,9 +515,6 @@ EnginePlaying_ResetHead:
   RTS
 
 TitleStartPressed: 
-  LDA #TRACK_1
-  STA gamestate
-  
   JSR ResetPPU
 
   LDA currentSong
@@ -493,15 +525,24 @@ TitleStartPressed:
   RTS 
 
 PlayTrack1:
+  LDA #$01
+  STA playingSongNumber
+
   JSR LoadSong1Background
+  JSR AS_StartPlayingCurrentTrack
   RTS 
+
 PlayTrack2: 
+  LDA #$02
+  STA playingSongNumber
+
   JSR LoadSong2Background
+  JSR AS_StartPlayingCurrentTrack
   RTS 
 
 PlayingSelectPressed:
-  LDA #STATETITLE
-  STA gamestate
+  JSR AS_StopMusic
+  
   JSR ResetPPU
   JSR LoadBackground  
   RTS 
@@ -556,10 +597,10 @@ SpritesMoveLeft:
   JSR AnimateWalk
   LDX #$03
 SpritesMoveLeftLoop: 
-  LDA $0200, x
+  LDA $0400, x
   SEC            
   SBC #$01       
-  STA $0200, x
+  STA $0400, x
   INX
   INX
   INX  
@@ -573,10 +614,10 @@ SpritesMoveRight:
   JSR AnimateWalk
   LDX #$03
 SpritesMoveRightLoop: 
-  LDA $0200, x
+  LDA $0400, x
   CLC            
   ADC #$01       
-  STA $0200, x
+  STA $0400, x
   INX
   INX
   INX
@@ -718,15 +759,7 @@ Bleep:
   STA $4003
   RTS
 
-;;;;;;;;;;;;;;;;;;;;;
-  
-  .bank 1
-  .org $A000
-  
 ;;;;;;;;;;;;;;;;;;;;
-  
-  .bank 2 
-  .org $C000
   
 menu_background:
   .incbin "menu.nam"
@@ -736,15 +769,15 @@ song1_background:
   
 song2_background:
   .incbin "song2.nam"
-  
-;;;;;;;;;;;;;;;;;;;  
-  
-  .bank 3
-  .org $E000
 
 ;;;;;;;;;;;;;;;;;;;;
 
-  .bank 3
+banktable:              ; Write to this table to switch banks.
+	.byte $00, $01, $01, $01, $04, $05, $06
+	.byte $07, $08, $09, $0A, $0B, $0C, $0D, $0E
+
+;;;;;;;;;;;;;;;;
+
   .org $FFFA     ;first of the three vectors starts here
   .dw NMI        ;when an NMI happens (once per frame if enabled) the 
                    ;processor will jump to the label NMI:
@@ -755,7 +788,7 @@ song2_background:
 ;;;;;;;;;;;;;;  
   
   
-  .bank 4
+  .bank 8
   .org $0000
   .incbin "ed.chr"   ;includes 8KB graphics file from SMB1 
   

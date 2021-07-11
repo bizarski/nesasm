@@ -1,83 +1,127 @@
-; ed_no_gg_sound.asm
-LoadSpritesLoop                  = $8059
-animLegsLeft                     = $847A
-StartClock                       = $83FA
-SpritesMoveRight                 = $83A4
-LoadPalettes                     = $803D
-ResetLatch                       = $83BB
-EnginePlaying_SpritesMoveRight   = $82EE
-song2_background                 = $C800
-ArrowMoveUp                      = $833F
-SpritesMoveRightLoop             = $83A9
-AnimateNothing                   = $83E4
-TitleStartPressed                = $830F
-Forever                          = $81AF
-MoveBass                         = $8464
-palette                          = $818F
-HideSpritesLoop                  = $8204
-LoadPalettesLoop                 = $804C
-animLegsRight                    = $847E
-ReadController1                  = $8281
-EnginePlaying_ResetHead          = $82FA
-ShowElmo                         = $822A
-PlayingSelectPressed             = $832B
-GameEngine_NotTitle              = $81D1
-EnginePlaying_SpritesMoveLeft    = $82EA
-song1_background                 = $C400
-EngineTitle                      = $81D5
-LoadSprites                      = $8057
-SpritesMoveLeft                  = $838D
-ArrowMoveDown                    = $8366
-EngineTitle_TitleStartPressed    = $82BA
-LoadSong1Background              = $8138
-EnginePlaying_PlayingSelectPres  = $82F6
-AdvanceAnimationFrame            = $840B
-menu_background                  = $C000
-AnimateWalk                      = $83C9
-EngineTitle_ArrowMoveDown        = $82C2
-DontChangeFrame                  = $8428
-HideAllSprites                   = $81FB
-ShowGuiness                      = $8242
-ShowMetaSpriteX                  = $8254
-DoNothing                        = $82B9
-StopMovingUp                     = $8362
-ReadController1Loop              = $828D
-vblankwait1                      = $8014
-ShowMetaSpriteY                  = $8269
-vblankwait2                      = $8038
-StopKeyClock                     = $8402
-clrmem                           = $8019
-LoadNametable                    = $8176
-RESET                            = $8000
-PlayTrack1                       = $8323
-DontHideSprites                  = $8216
-sprites                          = $8085
-EnginePlaying_SpritesBop         = $82F2
-PlayTrack2                       = $8327
-ShowSparx                        = $821E
-AnimateGuitars                   = $8429
-MoveGuitarsDown                  = $8443
-NMI                              = $81B2
-StillMovingDown                  = $8370
-LoadSong2Background              = $8157
-DontResetFrame                   = $841E
-DontResetLatch                   = $83C8
-StopMovingDown                   = $8389
-EngineTitle_ReactToInput         = $8298
-GameEngine                       = $81C7
-EngineTitle_ArrowMoveUp          = $82BE
-GameEngineDone                   = $81D4
-SpritesBop                       = $83E5
-StopFrameClock                   = $840A
-ShowSongSprites                  = $8217
-ResetPPU                         = $8337
-Bleep                            = $8482
-ShowAldo                         = $8236
-StillMovingUp                    = $8349
-EnginePlaying_ReactToInput       = $82C6
-DontShowSprites                  = $8253
-SpritesMoveLeftLoop              = $8392
-LoadBackground                   = $8119
-MoveGuitarsUp                    = $8438
-MoveGuitars                      = $844E
-EnginePlaying                    = $81E7
+$E059#LoadSpritesLoop#7
+$E4E1#animLegsLeft#7
+$E461#StartClock#7
+$044C#SPRITE_GUITAR_Y#F0
+$07FE#playingSongNumber#F0
+$0000#buttons1#F0
+$E40B#SpritesMoveRight#7
+$0000#DEVELO#F0
+$E03D#LoadPalettes#7
+$0005#frameTimeout#F0
+$0003#pointerHi#F0
+$003D#SPRITE_ELM_X#F0
+$E422#ResetLatch#7
+$E34C#EnginePlaying_SpritesMoveRight#7
+$ED03#song2_background#7
+$0004#nextFrame#F0
+$0094#SPRITE_ELM_Y#F0
+$A0A8#LOAD_ADDRESS_TRACK_1#F0
+$E3A6#ArrowMoveUp#7
+$A31B#LOAD_ADDRESS_TRACK_2#F0
+$E410#SpritesMoveRightLoop#7
+$0080#SPRITE_SPR_X#F0
+$E44B#AnimateNothing#7
+$E36D#TitleStartPressed#7
+$E1B2#Forever#7
+$E4CB#MoveBass#7
+$E192#palette#7
+$00A0#SPRITE_SPR_Y#F0
+$E1DC#ClearSoundLoop#7
+$E262#HideSpritesLoop#7
+$A999#INIT_ADDRESS#F0
+$E04C#LoadPalettesLoop#7
+$E4E5#animLegsRight#7
+$E2DF#ReadController1#7
+$0401#SPRITE_SPR_HEAD#F0
+$E358#EnginePlaying_ResetHead#7
+$0008#BTN_UP#F0
+$E288#ShowElmo#7
+$0411#SPRITE_SPR_LEGS#F0
+$E394#PlayingSelectPressed#7
+$E1D4#GameEngine_NotTitle#7
+$0007#isSongSpritesShown#F0
+$E348#EnginePlaying_SpritesMoveLeft#7
+$0000#CDROM#F0
+$07FF#initMusic#F0
+$E1D8#AS_ClearSound#7
+$0001#MAGICKIT#F0
+$E903#song1_background#7
+$E1FF#AS_StartPlayingCurrentTrack#7
+$E229#EngineTitle#7
+$E057#LoadSprites#7
+$E3F4#SpritesMoveLeft#7
+$0418#SPRITE_ARROW#F0
+$E3CD#ArrowMoveDown#7
+$0002#pointerLo#F0
+$E318#EngineTitle_TitleStartPressed#7
+$E13B#LoadSong1Background#7
+$E354#EnginePlaying_PlayingSelectPres#7
+$E472#AdvanceAnimationFrame#7
+$E503#menu_background#7
+$E430#AnimateWalk#7
+$005E#SPRITE_GUIN_X#F0
+$E320#EngineTitle_ArrowMoveDown#7
+$E48F#DontChangeFrame#7
+$E259#HideAllSprites#7
+$E2A0#ShowGuiness#7
+$E2B2#ShowMetaSpriteX#7
+$007B#SPRITE_GUIN_Y#F0
+$0001#buttonlatch#F0
+$E317#DoNothing#7
+$E3C9#StopMovingUp#7
+$00B0#SPRITE_ALDO_X#F0
+$E2EB#ReadController1Loop#7
+$E014#vblankwait1#7
+$E2C7#ShowMetaSpriteY#7
+$0087#SPRITE_ALDO_Y#F0
+$E038#vblankwait2#7
+$E469#StopKeyClock#7
+$E019#clrmem#7
+$E179#LoadNametable#7
+$E000#RESET#7
+$E37C#PlayTrack1#7
+$E274#DontHideSprites#7
+$E088#sprites#7
+$041C#SPRITE_BASS_Y#F0
+$E350#EnginePlaying_SpritesBop#7
+$001E#PPU_SETUP#F0
+$E388#PlayTrack2#7
+$A99C#PLAY_ADDRESS#F0
+$E27C#ShowSparx#7
+$0004#BTN_DOWN#F0
+$E490#AnimateGuitars#7
+$0001#BTN_RIGHT#F0
+$E4AA#MoveGuitarsDown#7
+$E1B5#NMI#7
+$E3D7#StillMovingDown#7
+$F103#banktable#7
+$E15A#LoadSong2Background#7
+$E219#InitTrack#7
+$E485#DontResetFrame#7
+$E42F#DontResetLatch#7
+$0002#BTN_LEFT#F0
+$002D#TRACK_1#F0
+$E3F0#StopMovingDown#7
+$E2F6#EngineTitle_ReactToInput#7
+$E1CA#GameEngine#7
+$0020#BTN_SELECT#F0
+$E31C#EngineTitle_ArrowMoveUp#7
+$E1D7#GameEngineDone#7
+$0035#TRACK_2#F0
+$E44C#SpritesBop#7
+$E471#StopFrameClock#7
+$E275#ShowSongSprites#7
+$E39E#ResetPPU#7
+$E4E9#Bleep#7
+$E294#ShowAldo#7
+$E3B0#StillMovingUp#7
+$0010#BTN_START#F0
+$E324#EnginePlaying_ReactToInput#7
+$E2B1#DontShowSprites#7
+$E3F9#SpritesMoveLeftLoop#7
+$E11C#LoadBackground#7
+$E49F#MoveGuitarsUp#7
+$E4B5#MoveGuitars#7
+$E23B#EnginePlaying#7
+$0006#currentSong#F0
+$E210#AS_StopMusic#7
