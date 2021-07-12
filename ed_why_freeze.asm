@@ -90,10 +90,6 @@ SPRITE_ARROW = $0218
 
 	.bank 6 ; (4/4 last bank/fixed) $C000
 	.org $C000
-	;.incbin "samples.bin"
-
-	.bank 7 ; (4/4 last bank/fixed) $E000
-	.org $E000
 
   
 RESET:
@@ -116,13 +112,13 @@ clrmem:
   LDA #$00
   STA $0000, x
   STA $0100, x
-;  STA $0200, x
+  STA $0300, x
   STA $0400, x
   STA $0500, x
   STA $0600, x
-;  STA $0700, x
+  STA $0700, x
   LDA #$FE
-  STA $0300, x
+  STA $0200, x
   INX
   BNE clrmem
       
@@ -755,6 +751,11 @@ Bleep:
   RTS
 
 ;;;;;;;;;;;;;;;;;;;;;
+  
+
+  .bank 7 ; (4/4 last bank/fixed) $E000
+  .org $E000
+
   
 ;;;;;;;;;;;;;;;;;;;;
   
