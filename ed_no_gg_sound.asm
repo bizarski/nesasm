@@ -90,10 +90,8 @@ playingSongNumber = $07FE
 	.org $A000
 
 	.bank 6 ; (4/4 last bank/fixed) $C000
-	.incbin "samples.bin"
-
-	.bank 7 ; (4/4 last bank/fixed) $E000
-	.org $E000
+	.org $C000
+	;.incbin "samples.bin"
   
   
 RESET:
@@ -116,13 +114,13 @@ clrmem:
   LDA #$00
   STA $0000, x
   STA $0100, x
+  STA $0300, x
   STA $0200, x
-  STA $0400, x
   STA $0500, x
   STA $0600, x
   STA $0700, x
   LDA #$FE
-  STA $0300, x
+  STA $0400, x
   INX
   BNE clrmem
       
@@ -312,7 +310,7 @@ NMI:
   STA $2001
   LDA #$00
   STA $2003       ; set the low byte (00) of the RAM address
-  LDA #$02
+  LDA #$04
   STA $4014       ; set the high byte (02) of the RAM address, start the transfer
   JSR StartClock
   JSR ReadController1  ;;get the current button data for player 1
@@ -336,6 +334,7 @@ EngineTitle:
   STA SPRITE_ARROW
   LDA $18
   JSR EngineTitle_ReactToInput
+  
   JMP GameEngineDone
 
 EnginePlaying: 
@@ -422,6 +421,7 @@ ShowMetaSpriteY:
   ADC #$08
   STA ($0400+8), x
   STA ($0400+12), x
+  CLC
   ADC #$08
   STA ($0400+16), x
   STA ($0400+20), x
@@ -527,7 +527,7 @@ TitleStartPressed:
 PlayTrack1:
   LDA #$01
   STA playingSongNumber
-
+  
   JSR LoadSong1Background
   JSR AS_StartPlayingCurrentTrack
   RTS 
@@ -682,6 +682,7 @@ AdvanceAnimationFrame:
   LDA #$FF 
   STA nextFrame
 DontResetFrame:
+  CLC 
   ADC #$01 
   STA nextFrame
   LDA #$05
@@ -760,6 +761,10 @@ Bleep:
   RTS
 
 ;;;;;;;;;;;;;;;;;;;;
+  
+
+  .bank 7 ; (4/4 last bank/fixed) $E000
+  .org $E000
   
 menu_background:
   .incbin "menu.nam"
