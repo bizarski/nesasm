@@ -6,6 +6,8 @@
 ;; DECLARE SOME VARIABLES HERE
   .rsset $0000  ;;start variables at ram location 0
 
+music           .rs 16
+
 buttons1   		.rs 1  ; player 1 gamepad buttons, one bit per button
 buttonlatch		.rs 1
 
@@ -29,8 +31,8 @@ TRACK_2 = $35
 
 INIT_ADDRESS = $A999
 PLAY_ADDRESS = $A99C
-LOAD_ADDRESS_TRACK_1 = $A0A8
-LOAD_ADDRESS_TRACK_2 = $A31B
+LOAD_ADDRESS_TRACK_1 = $A31B
+LOAD_ADDRESS_TRACK_2 = $A0A8
 
 BTN_LEFT = %00000010
 BTN_RIGHT = %00000001
@@ -71,16 +73,16 @@ playingSongNumber = $07FE
 
 	.bank 1 ; 1/4 Ak-B999
 	.org $A000
-	.org LOAD_ADDRESS_TRACK_2
+	.org LOAD_ADDRESS_TRACK_1
 	.incbin "Tsoy.nsf"	; test
 
 	.bank 2	; 2/4 8k-9999
 	.org $8000
 
 	.bank 3 ; 2/4 Ak-B999
-  .org $A000
-  .org LOAD_ADDRESS_TRACK_1
-	.incbin "test.nsf"
+    .org $A000
+    .org LOAD_ADDRESS_TRACK_2
+	incbin "test.nsf"
 	
 
 	.bank 4	; 3/4 8k-9999
@@ -304,8 +306,6 @@ Forever:
 
    
 NMI:
-
-
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
   LDA #$00
@@ -323,6 +323,7 @@ GameEngine:
 GameEngine_NotTitle:
   JMP EnginePlaying  
 GameEngineDone: 
+
   RTI             ; return from interrupt
  
 ;;;;;;;;;;;;;;  
