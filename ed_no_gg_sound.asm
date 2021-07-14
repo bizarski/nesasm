@@ -146,18 +146,9 @@ LoadPalettesLoop:
   CPX #$20              ; Compare X to hex $10, decimal 16 - copying 16 bytes = 4 sprites
   BNE LoadPalettesLoop  ; Branch to LoadPalettesLoop if compare was Not Equal to zero
                         ; if compare was equal to 32, keep going down
-
-LoadSprites:
-  LDX #$00              ; start at 0
-LoadSpritesLoop:
-  LDA sprites, x        ; load data from address (sprites +  x)
-  STA $0400, x          ; store into RAM address ($0400 + x)
-  INX                   ; X = X + 1
-  CPX #$A4              ; Compare X 
-  BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
-                        ; if compare was equal to 32, keep going down
 				
-  JSR LoadBackground 				
+  JSR LoadBackground
+  JSR LoadSprites  
   
   LDA #$00
   STA playingSongNumber
@@ -177,121 +168,6 @@ LoadSpritesLoop:
 
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
-
-sprites:
-     ;vert tile attr 	   horiz
-  .db $F0, $00, %00000001, $F0   ;spratz 0                            ;00
-  .db $F0, $01, %00000001, $F0   ;spratz 1
-  .db $F0, $10, %00000000, $F0   ;spratz 2
-  .db $F0, $11, %00000000, $F0   ;spratz 3                  
-  .db $F0, $20, %00000000, $F0   ;spratz 4                            ;10
-  .db $F0, $21, %00000000, $F0   ;spratz 5
-  
-  .db $00, $80, %00000010, $18   ;arrow 0 
-  
-  .db $F0, $2A, %00000011, $3D   ;bass 0                    
-  .db $F0, $2B, %00000011, $45   ;bass 1                              ;20
-  .db $F0, $2C, %00000011, $4D   ;bass 2
-  .db $F0, $3A, %00000011, $3D   ;bass 3      
-  .db $F0, $3B, %00000011, $45   ;bass 4                    
-  .db $F0, $3C, %00000011, $4D   ;bass 5                              ;30
-  
-  .db $F0, $04, %00000001, $F0   ;elmo
-  .db $F0, $05, %00000001, $F0
-  .db $F0, $14, %00000000, $F0        
-  .db $F0, $15, %00000000, $F0                                        ;40
-  .db $F0, $24, %00000000, $F0
-  .db $F0, $25, %00000000, $F0
-  
-  .db $F0, $0A, %00000011, $B2   ;guitar 0                  
-  .db $F0, $0B, %00000011, $BA   ;guitar 1                            ;50
-  .db $F0, $0C, %00000011, $C2   ;guitar 2
-  .db $F0, $1A, %00000011, $B2   ;guitar 3
-  .db $F0, $1B, %00000011, $BA   ;guitar 4                  
-  .db $F0, $1C, %00000011, $C2   ;guitar 5                            ;60
-  
-  .db $F0, $06, %00000000, $F0   ;aldo   
-  .db $F0, $07, %00000000, $F0 
-  .db $F0, $16, %00000000, $F0       
-  .db $F0, $17, %00000000, $F0                                        ;70
-  .db $F0, $26, %00000000, $F0   
-  .db $F0, $27, %00000000, $F0 
-  
-  .db $7B, $44, %00000010, $5E   ; guiness 
-  .db $7B, $45, %00000010, $66                                        ;80
-  .db $83, $54, %00000000, $5E
-  .db $83, $55, %00000000, $66
-  .db $8B, $64, %00000000, $5E
-  .db $8B, $65, %00000000, $66    
-
-
-LoadBackground:
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
-
-  LDA #low(menu_background)
-  STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(menu_background)
-  STA pointerHi       ; put the high byte of the address into pointer
-  LDX #$00            ; start at pointer + 0
-  LDY #$00
-  JSR LoadNametable
-  RTS 
-
-LoadSong1Background: 
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
-
-  LDA #low(song1_background)
-  STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(song1_background)
-  STA pointerHi       ; put the high byte of the address into pointer
-  LDX #$00            ; start at pointer + 0
-  LDY #$00
-  JSR LoadNametable
-  RTS 
- 
-LoadSong2Background: 
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
-
-  LDA #low(song2_background)
-  STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(song2_background)
-  STA pointerHi       ; put the high byte of the address into pointer
-  LDX #$00            ; start at pointer + 0
-  LDY #$00
-  JSR LoadNametable
-  RTS 
-
-LoadNametable:
-  LDA [pointerLo], Y					; load data using indirect indexed addressing (Y must be used in this mode)
-  STA $2007							; write to PPU
-  INY
-  CPY #$FF
-  BNE LoadNametable  ; branch when Y reaches $FF = 255 (255 bytes have been loaded).
-  LDA [pointerLo], Y					; since the loop ends before Y=$FF is used, run one more time to get to 256 bytes.
-  STA $2007							; write to PPU
-  INY								; increment Y to overflow back to $00 and prepare for next round
-  INX								; increment X now that the first of four blocks of 256 bytes is done
-  INC pointerHi						; move offset to next 256-byte block of memory
-  CPX #$04
-  BNE LoadNametable	; when X=$04, 4 rounds of 256 are complete for a full 1024 bytes read.
-  RTS
-
-
-palette:
-  .incbin "bg.pal"
-  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
 
 ;;;;;;;;;;;;;
 
@@ -792,6 +668,135 @@ Bleep:
 
   .bank 7 ; (4/4 last bank/fixed) $E000
   .org $E000
+
+
+LoadBackground:
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+
+  LDA #low(menu_background)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(menu_background)
+  STA pointerHi       ; put the high byte of the address into pointer
+  LDX #$00            ; start at pointer + 0
+  LDY #$00
+  JSR LoadNametable
+  RTS 
+
+
+LoadSprites:
+  LDX #$00              ; start at 0
+LoadSpritesLoop:
+  LDA sprites, x        ; load data from address (sprites +  x)
+  STA $0400, x          ; store into RAM address ($0400 + x)
+  INX                   ; X = X + 1
+  CPX #$A4              ; Compare X 
+  BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
+                        ; if compare was equal to 32, keep going down
+  RTS 
+
+LoadSong1Background: 
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+
+  LDA #low(song1_background)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(song1_background)
+  STA pointerHi       ; put the high byte of the address into pointer
+  LDX #$00            ; start at pointer + 0
+  LDY #$00
+  JSR LoadNametable
+  RTS 
+ 
+LoadSong2Background: 
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+
+  LDA #low(song2_background)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(song2_background)
+  STA pointerHi       ; put the high byte of the address into pointer
+  LDX #$00            ; start at pointer + 0
+  LDY #$00
+  JSR LoadNametable
+  RTS 
+
+LoadNametable:
+  LDA [pointerLo], Y					; load data using indirect indexed addressing (Y must be used in this mode)
+  STA $2007							; write to PPU
+  INY
+  CPY #$FF
+  BNE LoadNametable  ; branch when Y reaches $FF = 255 (255 bytes have been loaded).
+  LDA [pointerLo], Y					; since the loop ends before Y=$FF is used, run one more time to get to 256 bytes.
+  STA $2007							; write to PPU
+  INY								; increment Y to overflow back to $00 and prepare for next round
+  INX								; increment X now that the first of four blocks of 256 bytes is done
+  INC pointerHi						; move offset to next 256-byte block of memory
+  CPX #$04
+  BNE LoadNametable	; when X=$04, 4 rounds of 256 are complete for a full 1024 bytes read.
+  RTS
+
+sprites:
+     ;vert tile attr 	   horiz
+  .db $F0, $00, %00000001, $F0   ;spratz 0                            ;00
+  .db $F0, $01, %00000001, $F0   ;spratz 1
+  .db $F0, $10, %00000000, $F0   ;spratz 2
+  .db $F0, $11, %00000000, $F0   ;spratz 3                  
+  .db $F0, $20, %00000000, $F0   ;spratz 4                            ;10
+  .db $F0, $21, %00000000, $F0   ;spratz 5
+  
+  .db $00, $80, %00000010, $18   ;arrow 0 
+  
+  .db $F0, $2A, %00000011, $3D   ;bass 0                    
+  .db $F0, $2B, %00000011, $45   ;bass 1                              ;20
+  .db $F0, $2C, %00000011, $4D   ;bass 2
+  .db $F0, $3A, %00000011, $3D   ;bass 3      
+  .db $F0, $3B, %00000011, $45   ;bass 4                    
+  .db $F0, $3C, %00000011, $4D   ;bass 5                              ;30
+  
+  .db $F0, $04, %00000001, $F0   ;elmo
+  .db $F0, $05, %00000001, $F0
+  .db $F0, $14, %00000000, $F0        
+  .db $F0, $15, %00000000, $F0                                        ;40
+  .db $F0, $24, %00000000, $F0
+  .db $F0, $25, %00000000, $F0
+  
+  .db $F0, $0A, %00000011, $B2   ;guitar 0                  
+  .db $F0, $0B, %00000011, $BA   ;guitar 1                            ;50
+  .db $F0, $0C, %00000011, $C2   ;guitar 2
+  .db $F0, $1A, %00000011, $B2   ;guitar 3
+  .db $F0, $1B, %00000011, $BA   ;guitar 4                  
+  .db $F0, $1C, %00000011, $C2   ;guitar 5                            ;60
+  
+  .db $F0, $06, %00000000, $F0   ;aldo   
+  .db $F0, $07, %00000000, $F0 
+  .db $F0, $16, %00000000, $F0       
+  .db $F0, $17, %00000000, $F0                                        ;70
+  .db $F0, $26, %00000000, $F0   
+  .db $F0, $27, %00000000, $F0 
+  
+  .db $7B, $44, %00000010, $5E   ; guiness 
+  .db $7B, $45, %00000010, $66                                        ;80
+  .db $83, $54, %00000000, $5E
+  .db $83, $55, %00000000, $66
+  .db $8B, $64, %00000000, $5E
+  .db $8B, $65, %00000000, $66    
+
+
+
+palette:
+  .incbin "bg.pal"
+  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
+
   
 menu_background:
   .incbin "menu.nam"
