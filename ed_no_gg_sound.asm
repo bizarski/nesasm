@@ -28,11 +28,14 @@ PPU_SETUP = %00011110
 
 TRACK_1 = $2D
 TRACK_2 = $35
+TRACK_3 = $3D
+TRACK_4 = $45
+TRACK_5 = $4D
 
 INIT_ADDRESS = $A999
 PLAY_ADDRESS = $A99C
-LOAD_ADDRESS_TRACK_1 = $A31B
-LOAD_ADDRESS_TRACK_2 = $A0A8
+LOAD_ADDRESS_BANK_1 = $824A
+LOAD_ADDRESS_BANK_2 = $81ED
 
 BTN_LEFT = %00000010
 BTN_RIGHT = %00000001
@@ -69,21 +72,14 @@ playingSongNumber = $07FE
     
 	.code
 	.bank 0	; 1/4 8k-9999
-	.org $8000
-
-	.bank 1 ; 1/4 Ak-B999
-	.org $A000
-	.org LOAD_ADDRESS_TRACK_1
-	.incbin "Tsoy.nsf"	; test
+	.org LOAD_ADDRESS_BANK_1
+  incbin "NSFs/1_2_3.nsf"
+;	.bank 1 ; 1/4 Ak-B999
 
 	.bank 2	; 2/4 8k-9999
-	.org $8000
-
-	.bank 3 ; 2/4 Ak-B999
-    .org $A000
-    .org LOAD_ADDRESS_TRACK_2
-	incbin "test.nsf"
-	
+	.org LOAD_ADDRESS_BANK_2
+  incbin "NSFs/4_5.nsf"
+;	.bank 3 ; 2/4 Ak-B999
 
 	.bank 4	; 3/4 8k-9999
 	.org $8000
@@ -522,7 +518,13 @@ TitleStartPressed:
   CMP #TRACK_1
   BEQ PlayTrack1 
   CMP #TRACK_2
-  BEQ PlayTrack2  
+  BEQ PlayTrack2
+  CMP #TRACK_3
+  BEQ PlayTrack3
+  CMP #TRACK_4
+  BEQ PlayTrack4
+  CMP #TRACK_5
+  BEQ PlayTrack5
   RTS 
 
 PlayTrack1:
@@ -540,6 +542,30 @@ PlayTrack2:
   JSR LoadSong2Background
   JSR AS_StartPlayingCurrentTrack
   RTS 
+
+PlayTrack3: 
+  LDA #$03
+  STA playingSongNumber
+
+  JSR LoadSong2Background
+  JSR AS_StartPlayingCurrentTrack
+  RTS
+
+PlayTrack4: 
+  LDA #$04
+  STA playingSongNumber
+
+  JSR LoadSong2Background
+  JSR AS_StartPlayingCurrentTrack
+  RTS 
+
+PlayTrack5: 
+  LDA #$05
+  STA playingSongNumber
+
+  JSR LoadSong2Background
+  JSR AS_StartPlayingCurrentTrack
+  RTS
 
 PlayingSelectPressed:
   JSR AS_StopMusic
@@ -779,8 +805,9 @@ song2_background:
 ;;;;;;;;;;;;;;;;;;;;
 
 banktable:              ; Write to this table to switch banks.
-	.byte $00, $01, $01, $01, $04, $05, $06
-	.byte $07, $08, $09, $0A, $0B, $0C, $0D, $0E
+	.byte $00, $00, $00, $01, $01, $05, $06, $07, $08, $09, $0A, $0B
+track_number_in_bank_table:
+  .byte $00, $01, $02, $00, $01, $00, $00, $00, $00, $00, $00, $00
 
 ;;;;;;;;;;;;;;;;
 
