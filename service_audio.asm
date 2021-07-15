@@ -58,5 +58,5 @@ InitTrack:
 
 	JSR INIT_ADDRESS
 
-	RTS
+	JMP GameEngine
 	
