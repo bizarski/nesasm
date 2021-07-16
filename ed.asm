@@ -1,17 +1,12 @@
-  .inesprg 2   ; 2x 16KB PRG code (banks 0, 1, 2, 3)
+  .inesprg 4   ; 4x 16KB PRG code (banks 0, 1, 2, 3); UNROM has 4 or 8 banks
   .ineschr 1   ; 1x  8KB CHR data (bank 4)
-  .inesmap 0   ; mapper 0 = NROM, no bank swapping
+  .inesmap 2   ; mapper 0 = NROM, no bank swapping; 2 = UNROM
   .inesmir 1   ; background mirroring
-  
-  
-  include "ggsound.inc"
 
 ;; DECLARE SOME VARIABLES HERE
   .rsset $0000  ;;start variables at ram location 0
 
-  include "ggsound_zp.inc"
-
-gamestate		.rs 1  ; gamestate (0=title, 1=playing, 2=pause, 3=gameover)
+music           .rs 16
 
 buttons1   		.rs 1  ; player 1 gamepad buttons, one bit per button
 buttonlatch		.rs 1
@@ -29,13 +24,18 @@ isSongSpritesShown  .rs 1
 keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
 
 ;;;;;;;;;;;;;;;;;
-
-STATETITLE		= $00  ; displaying title screen
-
 PPU_SETUP = %00011110
 
-TRACK_1 = $2D
-TRACK_2 = $35
+TRACK_1 = $3D
+TRACK_2 = $45
+TRACK_3 = $4D
+TRACK_4 = $55
+TRACK_5 = $5D
+
+INIT_ADDRESS = $A999
+PLAY_ADDRESS = $A99C
+LOAD_ADDRESS_BANK_1 = $824A
+LOAD_ADDRESS_BANK_2 = $81ED
 
 BTN_LEFT = %00000010
 BTN_RIGHT = %00000001
@@ -44,13 +44,13 @@ BTN_DOWN = %00000100
 BTN_START = %00010000
 BTN_SELECT = %00100000
 
-SPRITE_SPR_LEGS = $0211
-SPRITE_SPR_HEAD = $0201
-SPRITE_SPR_Y = $A0
+SPRITE_SPR_LEGS = $0411
+SPRITE_SPR_HEAD = $0401
+SPRITE_SPR_Y = $A4
 SPRITE_SPR_X = $80
 
 SPRITE_ELM_X = $3D
-SPRITE_ELM_Y = $94
+SPRITE_ELM_Y = $99
 
 SPRITE_ALDO_X = $B0
 SPRITE_ALDO_Y = $87
@@ -58,21 +58,43 @@ SPRITE_ALDO_Y = $87
 SPRITE_GUIN_X = $5E
 SPRITE_GUIN_Y = $7B
 
-SPRITE_BASS_Y = $021C
+SPRITE_BASS_ADDR = $041C
 
-SPRITE_GUITAR_Y = $024C
+SPRITE_GUITAR_ADDR = $044C
 
-SPRITE_ARROW = $0218
+SPRITE_CYMB_ADDR = $0495
 
-  .rsset $0400  ;;RAM vars
-  include "ggsound_ram.inc"
+SPRITE_CYM_X = $80
+SPRITE_CYM_Y = $76
 
+SPRITE_ARROW = $0418
+
+initMusic = $07FF
+playingSongNumber = $07FE
 
 ;;;;;;;;;;;;;;;
 
     
-  .bank 0
-  .org $8000 
+	.code
+	.bank 0	; 1/4 8k-9999
+	.org LOAD_ADDRESS_BANK_1
+  incbin "NSFs/1_2_3.nsf"
+;	.bank 1 ; 1/4 Ak-B999
+
+	.bank 2	; 2/4 8k-9999
+	.org LOAD_ADDRESS_BANK_2
+  incbin "NSFs/4_5.nsf"
+;	.bank 3 ; 2/4 Ak-B999
+
+	.bank 4	; 3/4 8k-9999
+	.org $8000
+
+	.bank 5 ; 3/4 Ak-B999
+	.org $A000
+
+	.bank 6 ; (4/4 last bank/fixed) $C000
+	.org $C000
+	;.incbin "samples.bin"
   
   
 RESET:
@@ -95,13 +117,13 @@ clrmem:
   LDA #$00
   STA $0000, x
   STA $0100, x
+  STA $0300, x
   STA $0200, x
-  STA $0400, x
   STA $0500, x
   STA $0600, x
   STA $0700, x
   LDA #$FE
-  STA $0300, x
+  STA $0400, x
   INX
   BNE clrmem
       
@@ -129,22 +151,13 @@ LoadPalettesLoop:
   CPX #$20              ; Compare X to hex $10, decimal 16 - copying 16 bytes = 4 sprites
   BNE LoadPalettesLoop  ; Branch to LoadPalettesLoop if compare was Not Equal to zero
                         ; if compare was equal to 32, keep going down
-
-LoadSprites:
-  LDX #$00              ; start at 0
-LoadSpritesLoop:
-  LDA sprites, x        ; load data from address (sprites +  x)
-  STA $0200, x          ; store into RAM address ($0200 + x)
-  INX                   ; X = X + 1
-  CPX #$A4              ; Compare X 
-  BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
-                        ; if compare was equal to 32, keep going down
 				
-  JSR LoadBackground 				
+  JSR LoadBackground
+  JSR LoadSprites  
   
-; Set starting game state
-  LDA #STATETITLE
-  STA gamestate
+  LDA #$00
+  STA playingSongNumber
+  STA initMusic
   
   LDA #TRACK_1
   STA currentSong
@@ -161,135 +174,6 @@ LoadSpritesLoop:
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
 
-  LDA #SOUND_REGION_NTSC ;or #SOUND_REGION_PAL, or #SOUND_REGION_DENDY
-  STA sound_param_byte_0
-  
-  lda #low(song_list)
-  sta sound_param_word_0
-  lda #high(song_list)
-  sta sound_param_word_0+1
-  lda #low(instrument_list)
-  sta sound_param_word_2
-  lda #high(instrument_list)
-  sta sound_param_word_2+1
-
-  JSR sound_initialize 
-
-sprites:
-     ;vert tile attr 	   horiz
-  .db $F0, $00, %00000001, $F0   ;spratz 0                            ;00
-  .db $F0, $01, %00000001, $F0   ;spratz 1
-  .db $F0, $10, %00000000, $F0   ;spratz 2
-  .db $F0, $11, %00000000, $F0   ;spratz 3                  
-  .db $F0, $20, %00000000, $F0   ;spratz 4                            ;10
-  .db $F0, $21, %00000000, $F0   ;spratz 5
-  
-  .db $00, $80, %00000010, $18   ;arrow 0 
-  
-  .db $F0, $2A, %00000011, $3D   ;bass 0                    
-  .db $F0, $2B, %00000011, $45   ;bass 1                              ;20
-  .db $F0, $2C, %00000011, $4D   ;bass 2
-  .db $F0, $3A, %00000011, $3D   ;bass 3      
-  .db $F0, $3B, %00000011, $45   ;bass 4                    
-  .db $F0, $3C, %00000011, $4D   ;bass 5                              ;30
-  
-  .db $F0, $04, %00000001, $F0   ;elmo
-  .db $F0, $05, %00000001, $F0
-  .db $F0, $14, %00000000, $F0        
-  .db $F0, $15, %00000000, $F0                                        ;40
-  .db $F0, $24, %00000000, $F0
-  .db $F0, $25, %00000000, $F0
-  
-  .db $F0, $0A, %00000011, $B2   ;guitar 0                  
-  .db $F0, $0B, %00000011, $BA   ;guitar 1                            ;50
-  .db $F0, $0C, %00000011, $C2   ;guitar 2
-  .db $F0, $1A, %00000011, $B2   ;guitar 3
-  .db $F0, $1B, %00000011, $BA   ;guitar 4                  
-  .db $F0, $1C, %00000011, $C2   ;guitar 5                            ;60
-  
-  .db $F0, $06, %00000000, $F0   ;aldo   
-  .db $F0, $07, %00000000, $F0 
-  .db $F0, $16, %00000000, $F0       
-  .db $F0, $17, %00000000, $F0                                        ;70
-  .db $F0, $26, %00000000, $F0   
-  .db $F0, $27, %00000000, $F0 
-  
-  .db $7B, $44, %00000010, $5E   ; guiness 
-  .db $7B, $45, %00000010, $66                                        ;80
-  .db $83, $54, %00000000, $5E
-  .db $83, $55, %00000000, $66
-  .db $8B, $64, %00000000, $5E
-  .db $8B, $65, %00000000, $66    
-
-
-LoadBackground:
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
-
-  LDA #low(menu_background)
-  STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(menu_background)
-  STA pointerHi       ; put the high byte of the address into pointer
-  LDX #$00            ; start at pointer + 0
-  LDY #$00
-  JSR LoadNametable
-  RTS 
-
-LoadSong1Background: 
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
-
-  LDA #low(song1_background)
-  STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(song1_background)
-  STA pointerHi       ; put the high byte of the address into pointer
-  LDX #$00            ; start at pointer + 0
-  LDY #$00
-  JSR LoadNametable
-  RTS 
- 
-LoadSong2Background: 
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
-
-  LDA #low(song2_background)
-  STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(song2_background)
-  STA pointerHi       ; put the high byte of the address into pointer
-  LDX #$00            ; start at pointer + 0
-  LDY #$00
-  JSR LoadNametable
-  RTS 
-
-LoadNametable:
-  LDA [pointerLo], Y					; load data using indirect indexed addressing (Y must be used in this mode)
-  STA $2007							; write to PPU
-  INY
-  CPY #$FF
-  BNE LoadNametable  ; branch when Y reaches $FF = 255 (255 bytes have been loaded).
-  LDA [pointerLo], Y					; since the loop ends before Y=$FF is used, run one more time to get to 256 bytes.
-  STA $2007							; write to PPU
-  INY								; increment Y to overflow back to $00 and prepare for next round
-  INX								; increment X now that the first of four blocks of 256 bytes is done
-  INC pointerHi						; move offset to next 256-byte block of memory
-  CPX #$04
-  BNE LoadNametable	; when X=$04, 4 rounds of 256 are complete for a full 1024 bytes read.
-  RTS
-
-
-palette:
-  .incbin "bg.pal"
-  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
-
 ;;;;;;;;;;;;;
 
 Forever:
@@ -299,36 +183,36 @@ Forever:
 
    
 NMI:
-
-
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
   LDA #$00
   STA $2003       ; set the low byte (00) of the RAM address
-  LDA #$02
+  LDA #$04
   STA $4014       ; set the high byte (02) of the RAM address, start the transfer
   JSR StartClock
   JSR ReadController1  ;;get the current button data for player 1
   
 GameEngine:  
-  LDA gamestate
-  CMP #STATETITLE
+  LDA playingSongNumber
+  CMP #$00
   BNE GameEngine_NotTitle	; need to use JMP here because relative addressing used by BEQ goes out of range
   JMP EngineTitle			; game is displaying title screen
 GameEngine_NotTitle:
   JMP EnginePlaying  
 GameEngineDone: 
+
   RTI             ; return from interrupt
  
 ;;;;;;;;;;;;;;  
+  .include "inc/service_audio.asm"
 
-
-EngineTitle: 
+EngineTitle:
   JSR HideAllSprites
   LDA currentSong 
   STA SPRITE_ARROW
   LDA $18
   JSR EngineTitle_ReactToInput
+  
   JMP GameEngineDone
 
 EnginePlaying: 
@@ -337,10 +221,15 @@ EnginePlaying:
   JSR ShowSongSprites
   JSR AdvanceAnimationFrame 
   JSR AnimateGuitars
+  JSR AnimateCymbals
   JSR EnginePlaying_ReactToInput
-  
-  soundengine_update
-  
+
+  LDX initMusic
+  CPX #$01
+  BEQ InitTrack
+
+  JSR PLAY_ADDRESS
+
   JMP GameEngineDone
 
 HideAllSprites: 
@@ -350,7 +239,7 @@ HideAllSprites:
   LDX #$00
 HideSpritesLoop:
   LDA #$F0
-  STA $0200, x
+  STA $0400, x
   INX
   INX
   INX  
@@ -392,28 +281,49 @@ ShowGuiness:
   JSR ShowMetaSpriteY
   LDA #%00000001
   STA isSongSpritesShown
+ShowCymbals: 
+  LDX #$94
+  LDA #SPRITE_CYM_X
+  STA ($0400+3), x
+  CLC 
+  ADC #$08
+  STA ($0400+3+4), x
+  CLC 
+  ADC #$08
+  STA ($0400+3+8), x
+  CLC 
+  ADC #$08
+  STA ($0400+3+12), x
+  LDA #SPRITE_CYM_Y
+  STA $0400, x
+  STA ($0400+4), x
+  STA ($0400+8), x
+  STA ($0400+12), x
+  LDA #%00000001
+  STA isSongSpritesShown
 DontShowSprites:
   RTS 
   
 ShowMetaSpriteX: 
-  STA ($0200+3), x
-  STA ($0200+3+8), x
-  STA ($0200+3+16), x
+  STA ($0400+3), x
+  STA ($0400+3+8), x
+  STA ($0400+3+16), x
   CLC 
   ADC #$08
-  STA ($0200+3+4), x
-  STA ($0200+3+12), x
-  STA ($0200+3+20), x
+  STA ($0400+3+4), x
+  STA ($0400+3+12), x
+  STA ($0400+3+20), x
 ShowMetaSpriteY:
-  STA $0200, x
-  STA ($0200+4), x
+  STA $0400, x
+  STA ($0400+4), x
   CLC 
   ADC #$08
-  STA ($0200+8), x
-  STA ($0200+12), x
+  STA ($0400+8), x
+  STA ($0400+12), x
+  CLC
   ADC #$08
-  STA ($0200+16), x
-  STA ($0200+20), x
+  STA ($0400+16), x
+  STA ($0400+20), x
   RTS 
 
 ReadController1:
@@ -504,35 +414,64 @@ EnginePlaying_ResetHead:
   RTS
 
 TitleStartPressed: 
-  LDA #TRACK_1
-  STA gamestate
-  
   JSR ResetPPU
 
   LDA currentSong
   CMP #TRACK_1
   BEQ PlayTrack1 
   CMP #TRACK_2
-  BEQ PlayTrack2  
+  BEQ PlayTrack2
+  CMP #TRACK_3
+  BEQ PlayTrack3
+  CMP #TRACK_4
+  BEQ PlayTrack4
+  CMP #TRACK_5
+  BEQ PlayTrack5
   RTS 
 
 PlayTrack1:
+  LDA #$01
+  STA playingSongNumber
+  
   JSR LoadSong1Background
-  LDA #0
-  STA sound_param_byte_0
-  JSR play_song 
-  RTS 
-PlayTrack2: 
-  JSR LoadSong2Background
-  LDA #1
-  STA sound_param_byte_0
-  JSR play_song
+  JSR AS_StartPlayingCurrentTrack
   RTS 
 
+PlayTrack2: 
+  LDA #$02
+  STA playingSongNumber
+
+  JSR LoadSong2Background
+  JSR AS_StartPlayingCurrentTrack
+  RTS 
+
+PlayTrack3: 
+  LDA #$03
+  STA playingSongNumber
+
+  JSR LoadSong2Background
+  JSR AS_StartPlayingCurrentTrack
+  RTS
+
+PlayTrack4: 
+  LDA #$04
+  STA playingSongNumber
+
+  JSR LoadSong2Background
+  JSR AS_StartPlayingCurrentTrack
+  RTS 
+
+PlayTrack5: 
+  LDA #$05
+  STA playingSongNumber
+
+  JSR LoadSong2Background
+  JSR AS_StartPlayingCurrentTrack
+  RTS
+
 PlayingSelectPressed:
-  jsr pause_song
-  LDA #STATETITLE
-  STA gamestate
+  JSR AS_StopMusic
+  
   JSR ResetPPU
   JSR LoadBackground  
   RTS 
@@ -587,10 +526,10 @@ SpritesMoveLeft:
   JSR AnimateWalk
   LDX #$03
 SpritesMoveLeftLoop: 
-  LDA $0200, x
+  LDA $0400, x
   SEC            
   SBC #$01       
-  STA $0200, x
+  STA $0400, x
   INX
   INX
   INX  
@@ -604,10 +543,10 @@ SpritesMoveRight:
   JSR AnimateWalk
   LDX #$03
 SpritesMoveRightLoop: 
-  LDA $0200, x
+  LDA $0400, x
   CLC            
   ADC #$01       
-  STA $0200, x
+  STA $0400, x
   INX
   INX
   INX
@@ -626,31 +565,6 @@ ResetLatch:
 DontResetLatch:
   RTS 
 
-AnimateWalk: 
-  LDA keyHoldTimeout
-  BNE AnimateNothing
-  LDY #$00
-  LDX nextFrame
-  LDA animLegsLeft, x
-  STA SPRITE_SPR_LEGS
-  LDA animLegsRight, x
-  STA (SPRITE_SPR_LEGS+4)
-  LDA #$05 
-  STA keyHoldTimeout
-AnimateNothing: 
-  RTS 
-
-SpritesBop: 
-  LDA #$08 
-  STA SPRITE_SPR_HEAD
-  LDA #$09 
-  STA (SPRITE_SPR_HEAD+4)
-  LDA #$18
-  STA (SPRITE_SPR_HEAD+4+4)
-  LDA #$19
-  STA (SPRITE_SPR_HEAD+4+4+4)
-  RTS
-
 StartClock: 
   LDA keyHoldTimeout
   BEQ StopKeyClock
@@ -661,77 +575,15 @@ StopKeyClock:
   DEC frameTimeout
 StopFrameClock: 
   RTS 
-
-AdvanceAnimationFrame:
-  LDA frameTimeout
-  BNE DontChangeFrame
-  LDX #$00
-  LDA nextFrame
-  CMP #$03 
-  BNE DontResetFrame
-  LDA #$FF 
-  STA nextFrame
-DontResetFrame:
-  ADC #$01 
-  STA nextFrame
-  LDA #$05
-  STA frameTimeout
-DontChangeFrame:   
-  RTS 
   
-AnimateGuitars: 
-  LDA nextFrame
-  CMP #$01
-  BEQ MoveGuitarsUp
-  LDA nextFrame
-  CMP #$03
-  BEQ MoveGuitarsDown
-  RTS
-  
-MoveGuitarsUp: 
-  LDA #$9A ; bass
-  JSR MoveBass 
-  LDA #$8D ; guitar
-  JSR MoveGuitars
-  RTS 
-
-MoveGuitarsDown: 
-  LDA #$99 ; bass
-  JSR MoveBass 
-  LDA #$8C ; guitar  
-  JSR MoveGuitars
-  RTS 
-
-MoveGuitars: 
-  STA SPRITE_GUITAR_Y
-  STA (SPRITE_GUITAR_Y+4)
-  STA (SPRITE_GUITAR_Y+4+4)
-  CLC 
-  ADC #$08
-  STA (SPRITE_GUITAR_Y+8+4) 
-  STA (SPRITE_GUITAR_Y+8+4+4)  
-  STA (SPRITE_GUITAR_Y+8+4+4+4)   
-  RTS 
-
-MoveBass: 
-  STA SPRITE_BASS_Y
-  STA (SPRITE_BASS_Y+4)
-  STA (SPRITE_BASS_Y+4+4)
-  CLC 
-  ADC #$08
-  STA (SPRITE_BASS_Y+8+4)
-  STA (SPRITE_BASS_Y+8+4+4) 
-  STA (SPRITE_BASS_Y+8+4+4+4)    
-  RTS  
-  
-animLegsLeft: 
-  .db $20, $12, $20, $22
-
-animLegsRight: 
-  .db $21, $13, $21, $23 
+  .include "inc/animations.asm"
   
   
 Bleep:
+  ; enable channel
+  lda #%00000001
+  sta $4015
+  ; square 1
   LDA #%10000111
   STA $4000
   ; sweep   
@@ -745,16 +597,94 @@ Bleep:
   STA $4003
   RTS
 
-;;;;;;;;;;;;;;;;;;;;;
-  
-  .bank 1
-  .org $A000
-  include "ggsound.asm"
-  
 ;;;;;;;;;;;;;;;;;;;;
   
-  .bank 2 
-  .org $C000
+
+  .bank 7 ; (4/4 last bank/fixed) $E000
+  .org $E000
+
+
+LoadBackground:
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+
+  LDA #low(menu_background)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(menu_background)
+  STA pointerHi       ; put the high byte of the address into pointer
+  LDX #$00            ; start at pointer + 0
+  LDY #$00
+  JSR LoadNametable
+  RTS 
+
+
+LoadSprites:
+  LDX #$00              ; start at 0
+LoadSpritesLoop:
+  LDA sprites, x        ; load data from address (sprites +  x)
+  STA $0400, x          ; store into RAM address ($0400 + x)
+  INX                   ; X = X + 1
+  CPX #$A4              ; Compare X 
+  BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
+                        ; if compare was equal to 32, keep going down
+  RTS 
+
+LoadSong1Background: 
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+
+  LDA #low(song1_background)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(song1_background)
+  STA pointerHi       ; put the high byte of the address into pointer
+  LDX #$00            ; start at pointer + 0
+  LDY #$00
+  JSR LoadNametable
+  RTS 
+ 
+LoadSong2Background: 
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+
+  LDA #low(song2_background)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(song2_background)
+  STA pointerHi       ; put the high byte of the address into pointer
+  LDX #$00            ; start at pointer + 0
+  LDY #$00
+  JSR LoadNametable
+  RTS 
+
+LoadNametable:
+  LDA [pointerLo], Y					; load data using indirect indexed addressing (Y must be used in this mode)
+  STA $2007							; write to PPU
+  INY
+  CPY #$FF
+  BNE LoadNametable  ; branch when Y reaches $FF = 255 (255 bytes have been loaded).
+  LDA [pointerLo], Y					; since the loop ends before Y=$FF is used, run one more time to get to 256 bytes.
+  STA $2007							; write to PPU
+  INY								; increment Y to overflow back to $00 and prepare for next round
+  INX								; increment X now that the first of four blocks of 256 bytes is done
+  INC pointerHi						; move offset to next 256-byte block of memory
+  CPX #$04
+  BNE LoadNametable	; when X=$04, 4 rounds of 256 are complete for a full 1024 bytes read.
+  RTS
+
+  .include "inc/sprites.asm"
+
+palette:
+  .incbin "bg.pal"
+  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
+
   
 menu_background:
   .incbin "menu.nam"
@@ -764,16 +694,16 @@ song1_background:
   
 song2_background:
   .incbin "song2.nam"
-  
-;;;;;;;;;;;;;;;;;;;  
-  
-  .bank 3
-  .org $E000
 
-  include "all_songs.asm"
 ;;;;;;;;;;;;;;;;;;;;
 
-  .bank 3
+banktable:              ; Write to this table to switch banks.
+	.byte $00, $00, $00, $01, $01, $05, $06, $07, $08, $09, $0A, $0B
+track_number_in_bank_table:
+  .byte $00, $01, $02, $00, $01, $00, $00, $00, $00, $00, $00, $00
+
+;;;;;;;;;;;;;;;;
+
   .org $FFFA     ;first of the three vectors starts here
   .dw NMI        ;when an NMI happens (once per frame if enabled) the 
                    ;processor will jump to the label NMI:
@@ -784,7 +714,7 @@ song2_background:
 ;;;;;;;;;;;;;;  
   
   
-  .bank 4
+  .bank 8
   .org $0000
   .incbin "ed.chr"   ;includes 8KB graphics file from SMB1 
   
