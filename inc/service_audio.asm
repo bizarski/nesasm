@@ -59,4 +59,32 @@ InitTrack:
 	JSR INIT_ADDRESS
 
 	JMP GameEngine
+;
+
+dmc_sample_table:
+  .db $0F,$00,(sampleKick-$C000)/64,$0B
+
+PlaySample: 
+    ASL A
+    ASL A
+    TAY
+
+    LDA     dmc_sample_table+0,y
+    STA     $4010                   ; write sample frequency
 	
+    LDA     dmc_sample_table+1,y
+    STA     $4011                   ; write initial delta value
+	
+    LDA     dmc_sample_table+2,y
+    STA     $4012                   ; write sample address
+	
+    LDA     dmc_sample_table+3,y
+    STA     $4013                   ; write sample length
+	
+	LDA     #$0F
+    STA     $4015                   ; turn bit 4 off...
+	
+    LDA     #$1F
+    STA     $4015                   ; ... then on again
+	
+    RTS

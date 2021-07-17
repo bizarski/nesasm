@@ -49,8 +49,10 @@ keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
 
 	.bank 6 ; (4/4 last bank/fixed) $C000
 	.org $C000
-	;.incbin "samples.bin"
   
+  
+sampleKick: 
+  .incbin "dmc/PowerBlade2_$C200.dmc"
   
 RESET:
   SEI          ; disable IRQs
@@ -155,11 +157,11 @@ GameEngine:
 GameEngine_NotTitle:
   JMP EnginePlaying  
 GameEngineDone: 
-
   RTI             ; return from interrupt
  
 ;;;;;;;;;;;;;;  
   .include "inc/service_audio.asm"
+
 
 EngineTitle:
   JSR HideAllSprites
@@ -369,6 +371,14 @@ EnginePlaying_MoveGuiness:
   JSR ShowMetaSpriteX
   LDA #SPRITE_GUIN_Y
   JSR ShowMetaSpriteY
+  
+  LDA buttons1 
+  AND #%00000000
+  BEQ exitMoveGuiness
+  
+  LDA #$00
+  JSR PlaySample
+exitMoveGuiness:
   RTS 
 
 EnginePlaying_ResetTriggers: 
@@ -581,7 +591,7 @@ Bleep:
   RTS
 
 ;;;;;;;;;;;;;;;;;;;;
-  
+
 
   .bank 7 ; (4/4 last bank/fixed) $E000
   .org $E000
@@ -677,6 +687,7 @@ song1_background:
   
 song2_background:
   .incbin "song2.nam"
+
 
 ;;;;;;;;;;;;;;;;;;;;
 
