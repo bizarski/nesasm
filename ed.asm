@@ -24,53 +24,8 @@ isSongSpritesShown  .rs 1
 keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
 
 ;;;;;;;;;;;;;;;;;
-PPU_SETUP = %00011110
 
-TRACK_1 = $3D
-TRACK_2 = $45
-TRACK_3 = $4D
-TRACK_4 = $55
-TRACK_5 = $5D
-
-INIT_ADDRESS = $A999
-PLAY_ADDRESS = $A99C
-LOAD_ADDRESS_BANK_1 = $824A
-LOAD_ADDRESS_BANK_2 = $81ED
-
-BTN_LEFT = %00000010
-BTN_RIGHT = %00000001
-BTN_UP = %00001000
-BTN_DOWN = %00000100
-BTN_START = %00010000
-BTN_SELECT = %00100000
-
-SPRITE_SPR_LEGS = $0411
-SPRITE_SPR_HEAD = $0401
-SPRITE_SPR_Y = $A4
-SPRITE_SPR_X = $80
-
-SPRITE_ELM_X = $3D
-SPRITE_ELM_Y = $99
-
-SPRITE_ALDO_X = $B0
-SPRITE_ALDO_Y = $87
-
-SPRITE_GUIN_X = $5E
-SPRITE_GUIN_Y = $7B
-
-SPRITE_BASS_ADDR = $041C
-
-SPRITE_GUITAR_ADDR = $044C
-
-SPRITE_CYMB_ADDR = $0495
-
-SPRITE_CYM_X = $80
-SPRITE_CYM_Y = $76
-
-SPRITE_ARROW = $0418
-
-initMusic = $07FF
-playingSongNumber = $07FE
+  .include "inc/const.asm"
 
 ;;;;;;;;;;;;;;;
 
@@ -382,8 +337,14 @@ EnginePlaying_ReactToInput:
   AND #BTN_SELECT
   BNE EnginePlaying_PlayingSelectPressed
   LDA buttons1 
+  AND #BTN_A
+  BNE EnginePlaying_MoveGuiness
+  LDA buttons1 
+  AND #BTN_B
+  BNE EnginePlaying_MoveGuiness
+  LDA buttons1 
   AND #%00000000
-  BEQ EnginePlaying_ResetHead 
+  BEQ EnginePlaying_ResetTriggers
   RTS
 
 EnginePlaying_SpritesMoveLeft: 
@@ -402,7 +363,16 @@ EnginePlaying_PlayingSelectPressed:
   JMP PlayingSelectPressed
   RTS 
 
-EnginePlaying_ResetHead: 
+EnginePlaying_MoveGuiness:
+  LDX #$7C
+  LDA #SPRITE_GUIN_X-2
+  JSR ShowMetaSpriteX
+  LDA #SPRITE_GUIN_Y
+  JSR ShowMetaSpriteY
+  RTS 
+
+EnginePlaying_ResetTriggers: 
+ResetHead: 
   LDA #$00 
   STA SPRITE_SPR_HEAD
   LDA #$01 
@@ -410,6 +380,19 @@ EnginePlaying_ResetHead:
   LDA #$10
   STA (SPRITE_SPR_HEAD+4+4)
   LDA #$11
+  STA (SPRITE_SPR_HEAD+4+4+4)
+ResetGuiness: 
+  JSR ShowGuiness
+  RTS
+
+SpritesBop: 
+  LDA #$08 
+  STA SPRITE_SPR_HEAD
+  LDA #$09 
+  STA (SPRITE_SPR_HEAD+4)
+  LDA #$18
+  STA (SPRITE_SPR_HEAD+4+4)
+  LDA #$19
   STA (SPRITE_SPR_HEAD+4+4+4)
   RTS
 

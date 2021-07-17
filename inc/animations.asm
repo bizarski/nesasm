@@ -31,18 +31,6 @@ AnimateWalk:
 AnimateNothing: 
   RTS 
 
-SpritesBop: 
-  LDA #$08 
-  STA SPRITE_SPR_HEAD
-  LDA #$09 
-  STA (SPRITE_SPR_HEAD+4)
-  LDA #$18
-  STA (SPRITE_SPR_HEAD+4+4)
-  LDA #$19
-  STA (SPRITE_SPR_HEAD+4+4+4)
-  RTS
-
-
 AnimateGuitars: 
   LDA nextFrame
   CMP #$01
