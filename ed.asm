@@ -24,6 +24,8 @@ isSampleBeingPlayed .rs 1 ; TODO: store 7 flags in one byte
 
 keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
 
+samplePointer .rs 1
+
 ;;;;;;;;;;;;;;;;;
 
   .include "inc/const.asm"
@@ -143,6 +145,7 @@ LoadPalettesLoop:
   LDA #$00
   STA playingSongNumber
   STA initMusic
+  STA samplePointer
   
   LDA #TRACK_1
   STA currentSong
@@ -415,11 +418,13 @@ exitMoveGuiness:
 
 
 PlaySampleA: 
-  LDA #$02
+  LDA samplePointer
   JSR PlaySample
   RTS 
 PlaySampleB: 
-  LDA #$03
+  LDA samplePointer
+  CLC
+  ADC #$01
   JSR PlaySample
   RTS 
 
@@ -450,6 +455,16 @@ SpritesBop:
   STA (SPRITE_SPR_HEAD+4+4)
   LDA #$19
   STA (SPRITE_SPR_HEAD+4+4+4)
+UpdateSamplePointer:
+  LDA samplePointer
+  CLC 
+  ADC #$02
+  CMP #$0A
+  BNE StoreSamplePointer
+  LDA #$00
+  STA samplePointer
+StoreSamplePointer:
+  STA samplePointer 
   RTS
 
 TitleStartPressed: 
