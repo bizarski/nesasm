@@ -68,7 +68,11 @@ PlaySample:
     ASL A
     ASL A
     TAY
-
+	
+	LDA isSampleBeingPlayed
+	BIT #%00000001
+	BNE DontPlaySample
+	
     LDA     dmc_sample_table+0,y
     STA     $4010                   ; write sample frequency
 	
@@ -87,4 +91,7 @@ PlaySample:
     LDA     #$1F
     STA     $4015                   ; ... then on again
 	
+	LDA #%00000001
+	STA isSampleBeingPlayed
+DontPlaySample: 
     RTS

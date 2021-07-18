@@ -20,6 +20,7 @@ frameTimeout    .rs 1
 currentSong     .rs 1
 
 isSongSpritesShown  .rs 1
+isSampleBeingPlayed .rs 1 ; TODO: store 7 flags in one byte 
 
 keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
 
@@ -372,10 +373,6 @@ EnginePlaying_MoveGuiness:
   LDA #SPRITE_GUIN_Y
   JSR ShowMetaSpriteY
   
-  LDA buttons1 
-  AND #%00000000
-  BEQ exitMoveGuiness
-  
   LDA #$00
   JSR PlaySample
 exitMoveGuiness:
@@ -393,6 +390,9 @@ ResetHead:
   STA (SPRITE_SPR_HEAD+4+4+4)
 ResetGuiness: 
   JSR ShowGuiness
+ResetSamples: 
+  LDA #%00000000
+  STA isSampleBeingPlayed
   RTS
 
 SpritesBop: 
