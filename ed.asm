@@ -20,11 +20,13 @@ frameTimeout    .rs 1
 currentSong     .rs 1
 
 isSongSpritesShown  .rs 1
-isSampleBeingPlayed .rs 1 ; TODO: store 7 flags in one byte 
+isSampleBeingPlayed .rs 1  
+isSampleChanged     .rs 1 ; TODO: store 7 flags in one byte
+
 
 keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
 
-samplePointer .rs 1
+samplePointer   .rs 1
 
 ;;;;;;;;;;;;;;;;;
 
@@ -236,7 +238,7 @@ HideSpritesLoop:
   INX
   INX  
   INX
-  CPX #$A4
+  CPX #$A8
   BNE HideSpritesLoop
   LDA #%00000000
   STA isSongSpritesShown
@@ -291,6 +293,12 @@ ShowCymbals:
   STA ($0400+4), x
   STA ($0400+8), x
   STA ($0400+12), x
+ShowInventory:
+  LDA #$0D
+  STA $04A4
+  LDA #$C0
+  STA $04A7
+ResetSpritesFlag: 
   LDA #%00000001
   STA isSongSpritesShown
 DontShowSprites:
@@ -444,6 +452,7 @@ ResetGuiness:
 ResetSamples: 
   LDA #%00000000
   STA isSampleBeingPlayed
+  STA isSampleChanged
   RTS
 
 SpritesBop: 
@@ -455,6 +464,19 @@ SpritesBop:
   STA (SPRITE_SPR_HEAD+4+4)
   LDA #$19
   STA (SPRITE_SPR_HEAD+4+4+4)
+
+  LDA isSampleChanged
+  BIT #%00000001
+  BNE SkipUpdateSample  
+UpdateInventory: 
+  LDA INVENTORY_ADDR
+  CLC
+  ADC #$10 
+  CMP #$5E
+  BNE StoreInventoryChange
+  LDA #$0E
+StoreInventoryChange: 
+  STA INVENTORY_ADDR
 UpdateSamplePointer:
   LDA samplePointer
   CLC 
@@ -462,9 +484,11 @@ UpdateSamplePointer:
   CMP #$0A
   BNE StoreSamplePointer
   LDA #$00
-  STA samplePointer
 StoreSamplePointer:
-  STA samplePointer 
+  STA samplePointer
+  LDA #%00000001
+  STA isSampleChanged
+SkipUpdateSample: 
   RTS
 
 TitleStartPressed: 
@@ -681,7 +705,7 @@ LoadSpritesLoop:
   LDA sprites, x        ; load data from address (sprites +  x)
   STA $0400, x          ; store into RAM address ($0400 + x)
   INX                   ; X = X + 1
-  CPX #$A4              ; Compare X 
+  CPX #$A8              ; Compare X 
   BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
                         ; if compare was equal to 32, keep going down
   RTS 
