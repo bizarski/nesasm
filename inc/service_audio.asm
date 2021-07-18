@@ -62,7 +62,16 @@ InitTrack:
 ;
 
 dmc_sample_table:
-  .db $0F,$00,(sampleKick-$C000)/64,$0B
+  .db $0F,$00,(sampleKick-$C000)/64,$0F
+  .db $0F,$00,(sampleSnare-$C000)/64,$12
+  .db $0F,$00,(sampleCowbell-$C000)/64,$12
+  .db $0F,$00,(sampleCowbell2-$C000)/64,$12
+  .db $0F,$00,(sampleEffect-$C000)/64,$12
+  .db $0F,$00,(sampleSnare2-$C000)/64,$12
+  .db $0F,$00,(sampleScratch-$C000)/64,$12
+  .db $0F,$00,(sampleHandDrum-$C000)/64,$12
+  .db $0F,$00,(sampleKick2-$C000)/64,$12
+  .db $0F,$00,(sampleTom-$C000)/64,$12
 
 PlaySample: 
     ASL A

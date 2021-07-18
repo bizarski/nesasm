@@ -54,6 +54,33 @@ keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
   
 sampleKick: 
   .incbin "dmc/PowerBlade2_$C200.dmc"
+
+sampleSnare: 
+  .incbin "dmc/BuckyOHare_$FE00.dmc"
+
+sampleCowbell: 
+  .incbin "dmc/GradiusII_$C140.dmc"
+  
+sampleCowbell2: 
+  .incbin "dmc/GradiusII_$C280.dmc"
+  
+sampleEffect: 
+  .incbin "dmc/Qix_$C380.dmc"
+  
+sampleSnare2: 
+  .incbin "dmc/TecmoBowl_$E100.dmc"
+  
+sampleScratch: 
+  .incbin "dmc/TMNTTF_$CD40.dmc"
+ 
+sampleHandDrum: 
+  .incbin "dmc/Twinbee3_$C300.dmc" 
+  
+sampleKick2: 
+  .incbin "dmc/Werewolf_$FBC0.dmc" 
+
+sampleTom: 
+  .incbin "dmc/Werewolf_$FCC0.dmc" 
   
 RESET:
   SEI          ; disable IRQs
@@ -184,11 +211,15 @@ EnginePlaying:
 
   LDX initMusic
   CPX #$01
-  BEQ InitTrack
+  BEQ GoToInitTrack
 
   JSR PLAY_ADDRESS
 
   JMP GameEngineDone
+GoToInitTrack: 
+  JMP InitTrack
+  RTS 
+
 
 HideAllSprites: 
   LDA isSongSpritesShown
@@ -373,10 +404,25 @@ EnginePlaying_MoveGuiness:
   LDA #SPRITE_GUIN_Y
   JSR ShowMetaSpriteY
   
-  LDA #$00
-  JSR PlaySample
+  LDA buttons1 
+  AND #BTN_A
+  BNE PlaySampleA
+  LDA buttons1 
+  AND #BTN_B
+  BNE PlaySampleB
 exitMoveGuiness:
   RTS 
+
+
+PlaySampleA: 
+  LDA #$02
+  JSR PlaySample
+  RTS 
+PlaySampleB: 
+  LDA #$03
+  JSR PlaySample
+  RTS 
+
 
 EnginePlaying_ResetTriggers: 
 ResetHead: 
