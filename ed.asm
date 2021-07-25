@@ -322,10 +322,10 @@ EngineTitle_ArrowMoveDown:
 EnginePlaying_ReactToInput: 
   LDA buttons1 
   AND #BTN_LEFT 
-  BNE EnginePlaying_SpritesMoveLeft
+  BNE EnginePlaying_SpratzMoveLeft
   LDA buttons1 
   AND #BTN_RIGHT 
-  BNE EnginePlaying_SpritesMoveRight
+  BNE EnginePlaying_SpratzMoveRight
   LDA buttons1 
   AND #BTN_DOWN 
   BNE EnginePlaying_SpritesBop
@@ -343,12 +343,12 @@ EnginePlaying_ReactToInput:
   BEQ EnginePlaying_ResetTriggers
   RTS
 
-EnginePlaying_SpritesMoveLeft: 
-  JMP SpritesMoveLeft
+EnginePlaying_SpratzMoveLeft: 
+  JMP SpratzMoveLeft
   RTS 
 
-EnginePlaying_SpritesMoveRight: 
-  JMP SpritesMoveRight
+EnginePlaying_SpratzMoveRight: 
+  JMP SpratzMoveRight
   RTS 
   
 EnginePlaying_SpritesBop: 
@@ -521,6 +521,9 @@ ResetPPU:
   RTS
 
 ArrowMoveUp: 
+  LDA ARROW_RAM
+  CMP #MENU_X_LIMIT_TOP
+  BEQ StopMovingUp
   LDA #$00
   CMP buttonlatch
   BEQ StillMovingUp
@@ -541,6 +544,9 @@ StopMovingUp:
   RTS
 
 ArrowMoveDown: 
+  LDA ARROW_RAM
+  CMP #MENU_X_LIMIT_BOTTOM
+  BEQ StopMovingDown
   LDA #$00
   CMP buttonlatch
   BEQ StillMovingDown
@@ -560,10 +566,13 @@ StopMovingDown:
   JSR ResetLatch
   RTS
 
-SpritesMoveLeft:
+SpratzMoveLeft:
+  LDA (SPRATZ_RAM+3)
+  CMP #OPAQUE_X_LEFT
+  BEQ SpratzDontMoveLeft
   JSR AnimateWalk
   LDX #LOW(SPRATZ_RAM)
-SpritesMoveLeftLoop: 
+SpratzMoveLeftLoop: 
   LDA ($0400+3), x
   SEC            
   SBC #$01       
@@ -573,14 +582,18 @@ SpritesMoveLeftLoop:
   INX  
   INX
   CPX #LOW(SPRATZ_RAM)+24
-  BNE SpritesMoveLeftLoop
+  BNE SpratzMoveLeftLoop
+SpratzDontMoveLeft:
   RTS
 
 
-SpritesMoveRight:
+SpratzMoveRight:
+  LDA (SPRATZ_RAM+4+3)
+  CMP #OPAQUE_X_RIGHT
+  BEQ SpratzDontMoveRight
   JSR AnimateWalk
   LDX #LOW(SPRATZ_RAM)
-SpritesMoveRightLoop: 
+SpratzMoveRightLoop: 
   LDA ($0400+3), x
   CLC            
   ADC #$01       
@@ -590,7 +603,8 @@ SpritesMoveRightLoop:
   INX
   INX
   CPX #LOW(SPRATZ_RAM)+24
-  BNE SpritesMoveRightLoop
+  BNE SpratzMoveRightLoop
+SpratzDontMoveRight:
   RTS
   
 ResetLatch:	
@@ -737,8 +751,8 @@ song2_background:
 ;;;;;;;;;;;;;;;;;;;;
 
 banktable:              ; Write to this table to switch banks.
-	.byte $00, $00, $00, $01, $01, $05, $06, $07, $08, $09, $0A, $0B
-track_number_in_bank_table:
+  .byte $00, $00, $00, $01, $01, $05, $06, $07, $08, $09, $0A, $0B
+trackNumberInBankTable:
   .byte $00, $01, $02, $00, $01, $00, $00, $00, $00, $00, $00, $00
 
 ;;;;;;;;;;;;;;;;

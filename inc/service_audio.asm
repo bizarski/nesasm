@@ -56,7 +56,7 @@ InitTrack:
 	
 	LDY playingSongNumber
 	DEY
-	LDA track_number_in_bank_table, y	; song number
+	LDA trackNumberInBankTable, y	; song number
 	LDX #$00		; 00 for NTSC or $01 for PAL
 
 	JSR INIT_ADDRESS

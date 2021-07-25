@@ -11,8 +11,8 @@ frameTimeout    .rs 1
 
 currentSong     .rs 1
   
-gameFlags  .rs 1
-soundFlags .rs 1
+gameFlags       .rs 1
+soundFlags      .rs 1
 
 keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
 
