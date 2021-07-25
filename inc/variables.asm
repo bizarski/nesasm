@@ -10,12 +10,9 @@ nextFrame       .rs 1
 frameTimeout    .rs 1
 
 currentSong     .rs 1
-
-isSongSpritesShown  .rs 1
-isSampleBeingPlayed .rs 1  
-isMusicInitialized  .rs 1
-isSampleChanged     .rs 1 ; TODO: store 7 flags in one byte
-
+  
+gameFlags  .rs 1
+soundFlags .rs 1
 
 keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
 

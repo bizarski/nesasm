@@ -50,4 +50,4 @@ sprites:
   .db $F0, $4A, %00000000, $F0
   .db $F0, $4B, %00000000, $F0										  ;A0
   
-  .db $0D, $0E, %00000010, $C0	 ; inventory								  
+  .db $F0, $0E, %00000010, $F0	 ; inventory								  

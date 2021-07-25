@@ -23,17 +23,19 @@ AS_ClearSound:
 	RTS
 
 AS_StartPlayingCurrentTrack:	; A - current song?
-	LDA #$01
-	STA isMusicInitialized
+  LDA #MUSIC_INITIALIZED
+  EOR #%11111111
+  AND soundFlags      
+  STA soundFlags
 
-	LDA playingSongNumber
-	TAY
-	DEY
-	; bankswitch
-	LDA banktable, y      ; read a byte from the banktable
-	STA banktable, y
+  LDA playingSongNumber
+  TAY
+  DEY
+  ; bankswitch
+  LDA banktable, y      ; read a byte from the banktable
+  STA banktable, y
 
-	RTS
+  RTS
 
 AS_StopMusic:
 	JSR AS_ClearSound
@@ -46,8 +48,9 @@ AS_StopMusic:
 ;					-- PRIVATE FUNCTIONS --
 
 InitTrack:
-	LDA #$00
-	STA isMusicInitialized
+	LDA #MUSIC_INITIALIZED
+	ORA soundFlags
+	STA soundFlags 
 	
 	JSR AS_ClearSound
 	
@@ -78,8 +81,8 @@ PlaySample:
     ASL A
     TAY
 	
-	LDA isSampleBeingPlayed
-	BIT #%00000001
+	LDA #SAMPLE_PLAYED
+	BIT soundFlags
 	BNE DontPlaySample
 	
     LDA     dmc_sample_table+0,y
@@ -100,7 +103,8 @@ PlaySample:
     LDA     #$1F
     STA     $4015                   ; ... then on again
 	
-	LDA #%00000001
-	STA isSampleBeingPlayed
+	LDA soundFlags
+	EOR #SAMPLE_PLAYED
+	STA soundFlags
 DontPlaySample: 
     RTS

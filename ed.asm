@@ -97,14 +97,12 @@ LoadPalettesLoop:
   
   LDA #$00
   STA playingSongNumber
-  STA isMusicInitialized
   STA samplePointer
+  STA gameFlags
+  STA soundFlags
   
   LDA #TRACK_1
   STA currentSong
-  
-  LDA #%00000001
-  STA isSongSpritesShown
   
   LDA #$05 
   STA frameTimeout
@@ -150,7 +148,7 @@ GameEngineDone:
 EngineTitle:
   JSR HideAllSprites
   LDA currentSong 
-  STA SPRITE_RAM
+  STA ARROW_RAM
   LDA $18
   JSR EngineTitle_ReactToInput
   
@@ -158,15 +156,16 @@ EngineTitle:
 
 EnginePlaying: 
   LDA #$F0
-  STA SPRITE_RAM
+  STA ARROW_RAM
   JSR ShowSongSprites
   JSR AdvanceAnimationFrame 
   JSR AnimateGuitars
   JSR AnimateCymbals
   JSR EnginePlaying_ReactToInput
 
-  LDX isMusicInitialized
-  CPX #$01
+
+  LDA #MUSIC_INITIALIZED
+  BIT soundFlags
   BEQ GoToInitTrack
 
   JSR PLAY_ADDRESS
@@ -178,9 +177,10 @@ GoToInitTrack:
 
 
 HideAllSprites: 
-  LDA isSongSpritesShown
-  BIT #%00000001
+  LDA #SONG_SPRITES_SHOWN
+  BIT gameFlags
   BEQ DontHideSprites
+  JSR ToggleSpritesFlag
   LDX #$00
 HideSpritesLoop:
   LDA #$F0
@@ -191,15 +191,14 @@ HideSpritesLoop:
   INX
   CPX #$A8
   BNE HideSpritesLoop
-  LDA #%00000000
-  STA isSongSpritesShown
 DontHideSprites: 
   RTS 
 
 ShowSongSprites: 
-  LDA isSongSpritesShown
-  BIT #%00000001
+  LDA #SONG_SPRITES_SHOWN
+  BIT gameFlags
   BNE DontShowSprites 
+  JSR ToggleSpritesFlag
 ShowSparx: 
   LDX #LOW(SPRATZ_RAM)
   LDA #SPRITE_SPR_X
@@ -224,8 +223,6 @@ ShowGuiness:
   JSR ShowMetaSpriteX
   LDA #SPRITE_GUIN_Y
   JSR ShowMetaSpriteY
-  LDA #%00000001
-  STA isSongSpritesShown
 ShowCymbals: 
   LDX #LOW(CYMBALS_RAM)
   LDA #SPRITE_CYM_X
@@ -249,10 +246,13 @@ ShowInventory:
   STA $04A4
   LDA #$C0
   STA $04A7
-ResetSpritesFlag: 
-  LDA #%00000001
-  STA isSongSpritesShown
 DontShowSprites:
+  RTS 
+  
+ToggleSpritesFlag: 
+  LDA gameFlags
+  EOR #SONG_SPRITES_SHOWN
+  STA gameFlags
   RTS 
   
 ShowMetaSpriteX: 
@@ -401,9 +401,16 @@ ResetHead:
 ResetGuiness: 
   JSR ShowGuiness
 ResetSamples: 
-  LDA #%00000000
-  STA isSampleBeingPlayed
-  STA isSampleChanged
+  LDA #SAMPLE_PLAYED    ; 00000001
+  EOR #%11111111 		; 11111110
+  AND soundFlags      
+  STA soundFlags
+
+  LDA #SAMPLE_CHANGED    ; 00000001
+  EOR #%11111111 		 ; 11111110
+  AND soundFlags      
+  STA soundFlags
+  
   RTS
 
 SpritesBop: 
@@ -416,8 +423,8 @@ SpritesBop:
   LDA #$19
   STA (SPRATZ_RAM+1+4*3)
 
-  LDA isSampleChanged
-  BIT #%00000001
+  LDA #SAMPLE_CHANGED
+  BIT soundFlags
   BNE SkipUpdateSample  
 UpdateInventory: 
   LDA (INVENTORY_RAM+1)
@@ -437,8 +444,10 @@ UpdateSamplePointer:
   LDA #$00
 StoreSamplePointer:
   STA samplePointer
-  LDA #%00000001
-  STA isSampleChanged
+  
+  LDA soundFlags
+  EOR #SAMPLE_CHANGED
+  STA soundFlags
 SkipUpdateSample: 
   RTS
 
@@ -517,10 +526,10 @@ ArrowMoveUp:
   BEQ StillMovingUp
   JMP StopMovingUp
 StillMovingUp:
-  LDA SPRITE_RAM
+  LDA ARROW_RAM
   SEC            
   SBC #$08       
-  STA SPRITE_RAM
+  STA ARROW_RAM
   STA currentSong
   JSR Bleep
   LDA #$01
@@ -537,10 +546,10 @@ ArrowMoveDown:
   BEQ StillMovingDown
   JMP StopMovingDown
 StillMovingDown: 
-  LDA SPRITE_RAM
+  LDA ARROW_RAM
   CLC            
   ADC #$08       
-  STA SPRITE_RAM
+  STA ARROW_RAM
   STA currentSong
   JSR Bleep
   LDA #$01
@@ -553,34 +562,34 @@ StopMovingDown:
 
 SpritesMoveLeft:
   JSR AnimateWalk
-  LDX #$03
+  LDX #LOW(SPRATZ_RAM)
 SpritesMoveLeftLoop: 
-  LDA $0400, x
+  LDA ($0400+3), x
   SEC            
   SBC #$01       
-  STA $0400, x
+  STA ($0400+3), x
   INX
   INX
   INX  
   INX
-  CPX #$1B
+  CPX #LOW(SPRATZ_RAM)+24
   BNE SpritesMoveLeftLoop
   RTS
 
 
 SpritesMoveRight:
   JSR AnimateWalk
-  LDX #$03
+  LDX #LOW(SPRATZ_RAM)
 SpritesMoveRightLoop: 
-  LDA $0400, x
+  LDA ($0400+3), x
   CLC            
   ADC #$01       
-  STA $0400, x
+  STA ($0400+3), x
   INX
   INX
   INX
   INX
-  CPX #$1B
+  CPX #LOW(SPRATZ_RAM)+24
   BNE SpritesMoveRightLoop
   RTS
   
