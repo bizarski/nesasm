@@ -41,16 +41,20 @@ AnimateGuitars:
   RTS
   
 MoveGuitarsUp: 
-  LDA #$9E ; bass
+  LDA #SPRITE_BASS_Y
   JSR MoveBass 
-  LDA #$8D ; guitar
+  LDA #SPRITE_GUITAR_Y
   JSR MoveGuitars
   RTS 
 
 MoveGuitarsDown: 
-  LDA #$9D ; bass
+  LDA #SPRITE_BASS_Y
+  SEC
+  SBC #$01
   JSR MoveBass 
-  LDA #$8C ; guitar  
+  LDA #SPRITE_GUITAR_Y
+  SEC
+  SBC #$01
   JSR MoveGuitars
   RTS 
 

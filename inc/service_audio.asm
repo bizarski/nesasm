@@ -24,7 +24,7 @@ AS_ClearSound:
 
 AS_StartPlayingCurrentTrack:	; A - current song?
 	LDA #$01
-	STA initMusic
+	STA isMusicInitialized
 
 	LDA playingSongNumber
 	TAY
@@ -47,7 +47,7 @@ AS_StopMusic:
 
 InitTrack:
 	LDA #$00
-	STA initMusic
+	STA isMusicInitialized
 	
 	JSR AS_ClearSound
 	

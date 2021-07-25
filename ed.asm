@@ -6,27 +6,7 @@
 ;; DECLARE SOME VARIABLES HERE
   .rsset $0000  ;;start variables at ram location 0
 
-music           .rs 16
-
-buttons1   		.rs 1  ; player 1 gamepad buttons, one bit per button
-buttonlatch		.rs 1
-
-pointerLo  		.rs 1   ; pointer variables are declared in RAM
-pointerHi  		.rs 1   ; low byte first, high byte immediately after
-
-nextFrame       .rs 1
-frameTimeout    .rs 1
-
-currentSong     .rs 1
-
-isSongSpritesShown  .rs 1
-isSampleBeingPlayed .rs 1  
-isSampleChanged     .rs 1 ; TODO: store 7 flags in one byte
-
-
-keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
-
-samplePointer   .rs 1
+  .include "inc/variables.asm"
 
 ;;;;;;;;;;;;;;;;;
 
@@ -117,7 +97,7 @@ LoadPalettesLoop:
   
   LDA #$00
   STA playingSongNumber
-  STA initMusic
+  STA isMusicInitialized
   STA samplePointer
   
   LDA #TRACK_1
@@ -170,7 +150,7 @@ GameEngineDone:
 EngineTitle:
   JSR HideAllSprites
   LDA currentSong 
-  STA SPRITE_ARROW
+  STA SPRITE_RAM
   LDA $18
   JSR EngineTitle_ReactToInput
   
@@ -178,14 +158,14 @@ EngineTitle:
 
 EnginePlaying: 
   LDA #$F0
-  STA SPRITE_ARROW
+  STA SPRITE_RAM
   JSR ShowSongSprites
   JSR AdvanceAnimationFrame 
   JSR AnimateGuitars
   JSR AnimateCymbals
   JSR EnginePlaying_ReactToInput
 
-  LDX initMusic
+  LDX isMusicInitialized
   CPX #$01
   BEQ GoToInitTrack
 
@@ -537,10 +517,10 @@ ArrowMoveUp:
   BEQ StillMovingUp
   JMP StopMovingUp
 StillMovingUp:
-  LDA SPRITE_ARROW
+  LDA SPRITE_RAM
   SEC            
   SBC #$08       
-  STA SPRITE_ARROW
+  STA SPRITE_RAM
   STA currentSong
   JSR Bleep
   LDA #$01
@@ -557,10 +537,10 @@ ArrowMoveDown:
   BEQ StillMovingDown
   JMP StopMovingDown
 StillMovingDown: 
-  LDA SPRITE_ARROW
+  LDA SPRITE_RAM
   CLC            
   ADC #$08       
-  STA SPRITE_ARROW
+  STA SPRITE_RAM
   STA currentSong
   JSR Bleep
   LDA #$01
