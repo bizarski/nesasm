@@ -55,36 +55,7 @@ samplePointer   .rs 1
 	.bank 6 ; (4/4 last bank/fixed) $C000
 	.org $C000
   
-  
-sampleKick: 
-  .incbin "dmc/PowerBlade2_$C200.dmc"
-
-sampleSnare: 
-  .incbin "dmc/BuckyOHare_$FE00.dmc"
-
-sampleCowbell: 
-  .incbin "dmc/GradiusII_$C140.dmc"
-  
-sampleCowbell2: 
-  .incbin "dmc/GradiusII_$C280.dmc"
-  
-sampleEffect: 
-  .incbin "dmc/Qix_$C380.dmc"
-  
-sampleSnare2: 
-  .incbin "dmc/TecmoBowl_$E100.dmc"
-  
-sampleScratch: 
-  .incbin "dmc/TMNTTF_$CD40.dmc"
- 
-sampleHandDrum: 
-  .incbin "dmc/Twinbee3_$C300.dmc" 
-  
-sampleKick2: 
-  .incbin "dmc/Werewolf_$FBC0.dmc" 
-
-sampleTom: 
-  .incbin "dmc/Werewolf_$FCC0.dmc" 
+  .include "inc/samples.asm"
   
 RESET:
   SEI          ; disable IRQs
@@ -250,25 +221,25 @@ ShowSongSprites:
   BIT #%00000001
   BNE DontShowSprites 
 ShowSparx: 
-  LDX #$00
+  LDX #LOW(SPRATZ_RAM)
   LDA #SPRITE_SPR_X
   JSR ShowMetaSpriteX
   LDA #SPRITE_SPR_Y
   JSR ShowMetaSpriteY
 ShowElmo: 
-  LDX #$34
+  LDX #LOW(ELMO_RAM)
   LDA #SPRITE_ELM_X
   JSR ShowMetaSpriteX
   LDA #SPRITE_ELM_Y
   JSR ShowMetaSpriteY
 ShowAldo: 
-  LDX #$64
+  LDX #LOW(ALDO_RAM)
   LDA #SPRITE_ALDO_X
   JSR ShowMetaSpriteX
   LDA #SPRITE_ALDO_Y
   JSR ShowMetaSpriteY
 ShowGuiness: 
-  LDX #$7C
+  LDX #LOW(GUINESS_RAM)
   LDA #SPRITE_GUIN_X
   JSR ShowMetaSpriteX
   LDA #SPRITE_GUIN_Y
@@ -276,7 +247,7 @@ ShowGuiness:
   LDA #%00000001
   STA isSongSpritesShown
 ShowCymbals: 
-  LDX #$94
+  LDX #LOW(CYMBALS_RAM)
   LDA #SPRITE_CYM_X
   STA ($0400+3), x
   CLC 
@@ -284,15 +255,15 @@ ShowCymbals:
   STA ($0400+3+4), x
   CLC 
   ADC #$08
-  STA ($0400+3+8), x
+  STA ($0400+3+4*2), x
   CLC 
   ADC #$08
-  STA ($0400+3+12), x
+  STA ($0400+3+4*3), x
   LDA #SPRITE_CYM_Y
   STA $0400, x
   STA ($0400+4), x
-  STA ($0400+8), x
-  STA ($0400+12), x
+  STA ($0400+4*2), x
+  STA ($0400+4*3), x
 ShowInventory:
   LDA #$0D
   STA $04A4
@@ -306,24 +277,24 @@ DontShowSprites:
   
 ShowMetaSpriteX: 
   STA ($0400+3), x
-  STA ($0400+3+8), x
-  STA ($0400+3+16), x
+  STA ($0400+3+4*2), x
+  STA ($0400+3+4*4), x
   CLC 
   ADC #$08
   STA ($0400+3+4), x
-  STA ($0400+3+12), x
-  STA ($0400+3+20), x
+  STA ($0400+3+4*3), x
+  STA ($0400+3+4*5), x
 ShowMetaSpriteY:
   STA $0400, x
   STA ($0400+4), x
   CLC 
   ADC #$08
-  STA ($0400+8), x
-  STA ($0400+12), x
+  STA ($0400+4*2), x
+  STA ($0400+4*3), x
   CLC
   ADC #$08
-  STA ($0400+16), x
-  STA ($0400+20), x
+  STA ($0400+4*4), x
+  STA ($0400+4*5), x
   RTS 
 
 ReadController1:
@@ -440,13 +411,13 @@ PlaySampleB:
 EnginePlaying_ResetTriggers: 
 ResetHead: 
   LDA #$00 
-  STA SPRITE_SPR_HEAD
+  STA (SPRATZ_RAM+1)
   LDA #$01 
-  STA (SPRITE_SPR_HEAD+4)
+  STA (SPRATZ_RAM+1+4)
   LDA #$10
-  STA (SPRITE_SPR_HEAD+4+4)
+  STA (SPRATZ_RAM+1+4*2)
   LDA #$11
-  STA (SPRITE_SPR_HEAD+4+4+4)
+  STA (SPRATZ_RAM+1+4*3)
 ResetGuiness: 
   JSR ShowGuiness
 ResetSamples: 
@@ -457,26 +428,26 @@ ResetSamples:
 
 SpritesBop: 
   LDA #$08 
-  STA SPRITE_SPR_HEAD
+  STA SPRATZ_RAM+1
   LDA #$09 
-  STA (SPRITE_SPR_HEAD+4)
+  STA (SPRATZ_RAM+1+4)
   LDA #$18
-  STA (SPRITE_SPR_HEAD+4+4)
+  STA (SPRATZ_RAM+1+4*2)
   LDA #$19
-  STA (SPRITE_SPR_HEAD+4+4+4)
+  STA (SPRATZ_RAM+1+4*3)
 
   LDA isSampleChanged
   BIT #%00000001
   BNE SkipUpdateSample  
 UpdateInventory: 
-  LDA INVENTORY_ADDR
+  LDA (INVENTORY_RAM+1)
   CLC
   ADC #$10 
   CMP #$5E
   BNE StoreInventoryChange
   LDA #$0E
 StoreInventoryChange: 
-  STA INVENTORY_ADDR
+  STA (INVENTORY_RAM+1)
 UpdateSamplePointer:
   LDA samplePointer
   CLC 

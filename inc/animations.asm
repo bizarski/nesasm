@@ -23,9 +23,9 @@ AnimateWalk:
   LDY #$00
   LDX nextFrame
   LDA animLegsLeft, x
-  STA SPRITE_SPR_LEGS
+  STA (SPRATZ_RAM+4*4+1)
   LDA animLegsRight, x
-  STA (SPRITE_SPR_LEGS+4)
+  STA (SPRATZ_RAM+4*4+1+4)
   LDA #$05 
   STA keyHoldTimeout
 AnimateNothing: 
@@ -55,25 +55,25 @@ MoveGuitarsDown:
   RTS 
 
 MoveGuitars: 
-  STA SPRITE_GUITAR_ADDR
-  STA (SPRITE_GUITAR_ADDR+4)
-  STA (SPRITE_GUITAR_ADDR+4+4)
+  STA GUITAR_RAM
+  STA (GUITAR_RAM+4)
+  STA (GUITAR_RAM+4+4)
   CLC 
   ADC #$08
-  STA (SPRITE_GUITAR_ADDR+8+4) 
-  STA (SPRITE_GUITAR_ADDR+8+4+4)  
-  STA (SPRITE_GUITAR_ADDR+8+4+4+4)   
+  STA (GUITAR_RAM+8+4) 
+  STA (GUITAR_RAM+8+4*2)  
+  STA (GUITAR_RAM+8+4*3)   
   RTS 
 
 MoveBass: 
-  STA SPRITE_BASS_ADDR
-  STA (SPRITE_BASS_ADDR+4)
-  STA (SPRITE_BASS_ADDR+4+4)
+  STA BASS_RAM
+  STA (BASS_RAM+4)
+  STA (BASS_RAM+4+4)
   CLC 
   ADC #$08
-  STA (SPRITE_BASS_ADDR+8+4)
-  STA (SPRITE_BASS_ADDR+8+4+4) 
-  STA (SPRITE_BASS_ADDR+8+4+4+4)    
+  STA (BASS_RAM+8+4)
+  STA (BASS_RAM+8+4*2) 
+  STA (BASS_RAM+8+4*3)    
   RTS  
   
 AnimateCymbals: 
@@ -95,16 +95,16 @@ CymbalsChangeFrameB:
   JSR CymbalsChangeFrame
   RTS 
 CymbalsChangeFrame: 
-  STA SPRITE_CYMB_ADDR
+  STA CYMBALS_RAM+1
   CLC 
   ADC #$01 
-  STA (SPRITE_CYMB_ADDR+4)
+  STA (CYMBALS_RAM+1+4)
   CLC
   ADC #$01 
-  STA (SPRITE_CYMB_ADDR+8)
+  STA (CYMBALS_RAM+1+4*2)
   CLC
   ADC #$01 
-  STA (SPRITE_CYMB_ADDR+12)
+  STA (CYMBALS_RAM+1+4*3)
   RTS 
 
 animLegsLeft: 
