@@ -527,8 +527,20 @@ PlayTrack4:
 PlayTrack5: 
   LDA #$05
   STA playingSongNumber
-
-  JSR LoadSong2Background
+LoadPalettes5:
+  LDA $2002             
+  LDA #$3F
+  STA $2006             
+  LDA #$00
+  STA $2006             
+  LDX #$00              
+LoadPalettes5Loop:
+  LDA palette5, x       
+  STA $2007             
+  INX                   
+  CPX #$20              
+  BNE LoadPalettes5Loop  
+  JSR LoadSong5Background
   JSR AS_StartPlayingCurrentTrack
   RTS
 
@@ -709,57 +721,17 @@ LoadSpritesLoop:
                         ; if compare was equal to 32, keep going down
   RTS 
 
-LoadSong1Background: 
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
 
-  LDA #low(song1_background)
-  STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(song1_background)
-  STA pointerHi       ; put the high byte of the address into pointer
-  LDX #$00            ; start at pointer + 0
-  LDY #$00
-  JSR LoadNametable
-  RTS 
- 
-LoadSong2Background: 
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
-
-  LDA #low(song2_background)
-  STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(song2_background)
-  STA pointerHi       ; put the high byte of the address into pointer
-  LDX #$00            ; start at pointer + 0
-  LDY #$00
-  JSR LoadNametable
-  RTS 
-
-LoadNametable:
-  LDA [pointerLo], Y					; load data using indirect indexed addressing (Y must be used in this mode)
-  STA $2007							; write to PPU
-  INY
-  CPY #$FF
-  BNE LoadNametable  ; branch when Y reaches $FF = 255 (255 bytes have been loaded).
-  LDA [pointerLo], Y					; since the loop ends before Y=$FF is used, run one more time to get to 256 bytes.
-  STA $2007							; write to PPU
-  INY								; increment Y to overflow back to $00 and prepare for next round
-  INX								; increment X now that the first of four blocks of 256 bytes is done
-  INC pointerHi						; move offset to next 256-byte block of memory
-  CPX #$04
-  BNE LoadNametable	; when X=$04, 4 rounds of 256 are complete for a full 1024 bytes read.
-  RTS
+  .include "inc/backgrounds.asm"
 
   .include "inc/sprites.asm"
 
 palette:
   .incbin "bg.pal"
+  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
+
+palette5:
+  .incbin "bg5.pal"
   .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
 
   
@@ -772,6 +744,8 @@ song1_background:
 song2_background:
   .incbin "song2.nam"
 
+song5_background:
+  .incbin "song5.nam"
 
 ;;;;;;;;;;;;;;;;;;;;
 
