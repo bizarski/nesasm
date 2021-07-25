@@ -189,7 +189,7 @@ HideSpritesLoop:
   INX
   INX  
   INX
-  CPX #$A8
+  CPX #$B0
   BNE HideSpritesLoop
 DontHideSprites: 
   RTS 
@@ -199,12 +199,6 @@ ShowSongSprites:
   BIT gameFlags
   BNE DontShowSprites 
   JSR ToggleSpritesFlag
-ShowSparx: 
-  LDX #LOW(SPRATZ_RAM)
-  LDA #SPRITE_SPR_X
-  JSR ShowMetaSpriteX
-  LDA #SPRITE_SPR_Y
-  JSR ShowMetaSpriteY
 ShowElmo: 
   LDX #LOW(ELMO_RAM)
   LDA #SPRITE_ELM_X
@@ -217,12 +211,8 @@ ShowAldo:
   JSR ShowMetaSpriteX
   LDA #SPRITE_ALDO_Y
   JSR ShowMetaSpriteY
-ShowGuiness: 
-  LDX #LOW(GUINESS_RAM)
-  LDA #SPRITE_GUIN_X
-  JSR ShowMetaSpriteX
-  LDA #SPRITE_GUIN_Y
-  JSR ShowMetaSpriteY
+ShowGuin:
+  JSR ShowGuiness
 ShowCymbals: 
   LDX #LOW(CYMBALS_RAM)
   LDA #SPRITE_CYM_X
@@ -243,12 +233,26 @@ ShowCymbals:
   STA ($0400+4*3), x
 ShowInventory:
   LDA #$0D
-  STA $04A4
+  STA INVENTORY_RAM
   LDA #$C0
-  STA $04A7
+  STA (INVENTORY_RAM+3)
+ShowSparx: 
+  LDX #LOW(SPRATZ_RAM)
+  LDA #SPRITE_SPR_X
+  JSR ShowSpratzX
+  LDA #SPRITE_SPR_Y
+  JSR ShowSpratzY
 DontShowSprites:
   RTS 
   
+ShowGuiness: 
+  LDX #LOW(GUINESS_RAM)
+  LDA #SPRITE_GUIN_X
+  JSR ShowMetaSpriteX
+  LDA #SPRITE_GUIN_Y
+  JSR ShowMetaSpriteY
+  RTS  
+
 ToggleSpritesFlag: 
   LDA gameFlags
   EOR #SONG_SPRITES_SHOWN
@@ -264,6 +268,8 @@ ShowMetaSpriteX:
   STA ($0400+3+4), x
   STA ($0400+3+4*3), x
   STA ($0400+3+4*5), x
+  RTS
+  
 ShowMetaSpriteY:
   STA $0400, x
   STA ($0400+4), x
@@ -275,6 +281,23 @@ ShowMetaSpriteY:
   ADC #$08
   STA ($0400+4*4), x
   STA ($0400+4*5), x
+  RTS 
+
+ShowSpratzX: 
+  JSR ShowMetaSpriteX
+  SEC
+  SBC #$08
+  STA ($0400+3+4*6), x
+  CLC 
+  ADC #$08
+  STA ($0400+3+4*7), x
+  RTS
+ShowSpratzY:
+  JSR ShowMetaSpriteY
+  CLC
+  ADC #$08
+  STA ($0400+4*6), x
+  STA ($0400+4*7), x
   RTS 
 
 ReadController1:
@@ -360,11 +383,9 @@ EnginePlaying_PlayingSelectPressed:
   RTS 
 
 EnginePlaying_MoveGuiness:
-  LDX #$7C
+  LDX #LOW(GUINESS_RAM)
   LDA #SPRITE_GUIN_X-2
   JSR ShowMetaSpriteX
-  LDA #SPRITE_GUIN_Y
-  JSR ShowMetaSpriteY
   
   LDA buttons1 
   AND #BTN_A
@@ -398,6 +419,8 @@ ResetHead:
   STA (SPRATZ_RAM+1+4*2)
   LDA #$11
   STA (SPRATZ_RAM+1+4*3)
+  LDA #$21
+  STA (SPRATZ_RAM+1+4*5)
 ResetGuiness: 
   JSR ShowGuiness
 ResetSamples: 
@@ -422,6 +445,8 @@ SpritesBop:
   STA (SPRATZ_RAM+1+4*2)
   LDA #$19
   STA (SPRATZ_RAM+1+4*3)
+  LDA #$29
+  STA (SPRATZ_RAM+1+4*5)
 
   LDA #SAMPLE_CHANGED
   BIT soundFlags
@@ -581,7 +606,7 @@ SpratzMoveLeftLoop:
   INX
   INX  
   INX
-  CPX #LOW(SPRATZ_RAM)+24
+  CPX #LOW(SPRATZ_RAM)+32
   BNE SpratzMoveLeftLoop
 SpratzDontMoveLeft:
   RTS
@@ -602,7 +627,7 @@ SpratzMoveRightLoop:
   INX
   INX
   INX
-  CPX #LOW(SPRATZ_RAM)+24
+  CPX #LOW(SPRATZ_RAM)+32
   BNE SpratzMoveRightLoop
 SpratzDontMoveRight:
   RTS
@@ -679,7 +704,7 @@ LoadSpritesLoop:
   LDA sprites, x        ; load data from address (sprites +  x)
   STA $0400, x          ; store into RAM address ($0400 + x)
   INX                   ; X = X + 1
-  CPX #$A8              ; Compare X 
+  CPX #$B0              ; Compare X 
   BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
                         ; if compare was equal to 32, keep going down
   RTS 

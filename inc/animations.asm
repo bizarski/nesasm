@@ -23,9 +23,9 @@ AnimateWalk:
   LDY #$00
   LDX nextFrame
   LDA animLegsLeft, x
-  STA (SPRATZ_RAM+4*4+1)
+  STA (SPRATZ_RAM+4*6+1)
   LDA animLegsRight, x
-  STA (SPRATZ_RAM+4*4+1+4)
+  STA (SPRATZ_RAM+4*6+1+4)
   LDA #$05 
   STA keyHoldTimeout
 AnimateNothing: 
@@ -112,7 +112,7 @@ CymbalsChangeFrame:
   RTS 
 
 animLegsLeft: 
-  .db $20, $12, $20, $22
+  .db $30, $12, $30, $22
 
 animLegsRight: 
-  .db $21, $13, $21, $23 
+  .db $31, $13, $31, $23 
