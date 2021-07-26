@@ -31,6 +31,22 @@ LoadSong2Background:
   JSR LoadNametable
   RTS 
 
+LoadSong4Background: 
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+
+  LDA #low(song4_background)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(song4_background)
+  STA pointerHi       ; put the high byte of the address into pointer
+  LDX #$00            ; start at pointer + 0
+  LDY #$00
+  JSR LoadNametable
+  RTS 
+
 LoadSong5Background: 
   LDA $2002             ; read PPU status to reset the high/low latch
   LDA #$20

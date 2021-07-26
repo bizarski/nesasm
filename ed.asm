@@ -503,7 +503,19 @@ PlayTrack1:
 PlayTrack2: 
   LDA #$02
   STA playingSongNumber
-
+LoadPalettes2:
+  LDA $2002             
+  LDA #$3F
+  STA $2006             
+  LDA #$00
+  STA $2006             
+  LDX #$00              
+LoadPalettes2Loop:
+  LDA palette2, x       
+  STA $2007             
+  INX                   
+  CPX #$20              
+  BNE LoadPalettes2Loop  
   JSR LoadSong2Background
   JSR AS_StartPlayingCurrentTrack
   RTS 
@@ -519,8 +531,20 @@ PlayTrack3:
 PlayTrack4: 
   LDA #$04
   STA playingSongNumber
-
-  JSR LoadSong2Background
+LoadPalettes4:
+  LDA $2002             
+  LDA #$3F
+  STA $2006             
+  LDA #$00
+  STA $2006             
+  LDX #$00              
+LoadPalettes4Loop:
+  LDA palette4, x       
+  STA $2007             
+  INX                   
+  CPX #$20              
+  BNE LoadPalettes4Loop  
+  JSR LoadSong4Background
   JSR AS_StartPlayingCurrentTrack
   RTS 
 
@@ -730,6 +754,14 @@ palette:
   .incbin "bg.pal"
   .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
 
+palette2:
+  .incbin "bg2.pal"
+  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
+
+palette4:
+  .incbin "bg4.pal"
+  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
+
 palette5:
   .incbin "bg5.pal"
   .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
@@ -743,6 +775,9 @@ song1_background:
   
 song2_background:
   .incbin "song2.nam"
+
+song4_background:
+  .incbin "song4.nam"
 
 song5_background:
   .incbin "song5.nam"
