@@ -19,3 +19,5 @@ keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
 samplePointer   .rs 1
 
 playingSongNumber .rs 1
+
+arrowPosition   .rs 1

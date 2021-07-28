@@ -149,7 +149,6 @@ EngineTitle:
   JSR HideAllSprites
   LDA currentSong 
   STA ARROW_RAM
-  LDA $18
   JSR EngineTitle_ReactToInput
   
   JMP GameEngineDone
@@ -328,7 +327,7 @@ EngineTitle_ReactToInput:
   AND #%00000000
   BNE DoNothing 
   LDA #$00
-  STA keyHoldTimeout
+  STA buttonlatch
 DoNothing: 
   RTS
   
@@ -598,10 +597,7 @@ StillMovingUp:
   JSR Bleep
   LDA #$01
   STA buttonlatch
-  LDA #$20 
-  STA keyHoldTimeout
 StopMovingUp:
-  JSR ResetLatch
   RTS
 
 ArrowMoveDown: 
@@ -621,10 +617,7 @@ StillMovingDown:
   JSR Bleep
   LDA #$01
   STA buttonlatch
-  LDA #$20 
-  STA keyHoldTimeout
 StopMovingDown:
-  JSR ResetLatch
   RTS
 
 SpratzMoveLeft:
@@ -668,15 +661,6 @@ SpratzMoveRightLoop:
 SpratzDontMoveRight:
   RTS
   
-ResetLatch:	
-  LDA keyHoldTimeout
-  BNE DontResetLatch
-   
-  LDA #$00 
-  STA keyHoldTimeout
-  STA buttonlatch
-DontResetLatch:
-  RTS 
 
 StartClock: 
   LDA keyHoldTimeout
