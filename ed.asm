@@ -72,25 +72,7 @@ vblankwait2:      ; Second wait for vblank, PPU is ready after this
   BIT $2002
   BPL vblankwait2
 
-
-LoadPalettes:
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$3F
-  STA $2006             ; write the high byte of $3F00 address
-  LDA #$00
-  STA $2006             ; write the low byte of $3F00 address
-  LDX #$00              ; start out at 0
-LoadPalettesLoop:
-  LDA palette, x        ; load data from address (palette + the value in x)
-                          ; 1st time through loop it will load palette+0
-                          ; 2nd time through loop it will load palette+1
-                          ; 3rd time through loop it will load palette+2
-                          ; etc
-  STA $2007             ; write to PPU
-  INX                   ; X = X + 1
-  CPX #$20              ; Compare X to hex $10, decimal 16 - copying 16 bytes = 4 sprites
-  BNE LoadPalettesLoop  ; Branch to LoadPalettesLoop if compare was Not Equal to zero
-                        ; if compare was equal to 32, keep going down
+  JSR LoadPalette1
 				
   JSR LoadBackground
   JSR LoadSprites  
@@ -480,97 +462,76 @@ TitleStartPressed:
 
   LDA currentSong
   CMP #TRACK_1
-  BEQ PlayTrack1 
+  BEQ goto_PlayTrack1 
   CMP #TRACK_2
-  BEQ PlayTrack2
+  BEQ goto_PlayTrack2
   CMP #TRACK_3
-  BEQ PlayTrack3
+  BEQ goto_PlayTrack3
   CMP #TRACK_4
-  BEQ PlayTrack4
+  BEQ goto_PlayTrack4
   CMP #TRACK_5
-  BEQ PlayTrack5
+  BEQ goto_PlayTrack5
+FinishStartPressed:
   RTS 
+
+
+goto_PlayTrack1:
+  JMP PlayTrack1
+goto_PlayTrack2:
+  JMP PlayTrack2
+goto_PlayTrack3:
+  JMP PlayTrack3
+goto_PlayTrack4:
+  JMP PlayTrack4
+goto_PlayTrack5:
+  JMP PlayTrack5
+
 
 PlayTrack1:
   LDA #$01
   STA playingSongNumber
-  
+  JSR LoadPalette1
   JSR LoadSong1Background
   JSR AS_StartPlayingCurrentTrack
-  RTS 
+  JMP FinishStartPressed
 
 PlayTrack2: 
   LDA #$02
   STA playingSongNumber
-LoadPalettes2:
-  LDA $2002             
-  LDA #$3F
-  STA $2006             
-  LDA #$00
-  STA $2006             
-  LDX #$00              
-LoadPalettes2Loop:
-  LDA palette2, x       
-  STA $2007             
-  INX                   
-  CPX #$20              
-  BNE LoadPalettes2Loop  
+  JSR LoadPalette2
   JSR LoadSong2Background
   JSR AS_StartPlayingCurrentTrack
-  RTS 
+  JMP FinishStartPressed 
 
 PlayTrack3: 
   LDA #$03
   STA playingSongNumber
-
-  JSR LoadSong2Background
+  JSR LoadPalette3
+  JSR LoadSong3Background
   JSR AS_StartPlayingCurrentTrack
-  RTS
+  JMP FinishStartPressed
 
 PlayTrack4: 
   LDA #$04
   STA playingSongNumber
-LoadPalettes4:
-  LDA $2002             
-  LDA #$3F
-  STA $2006             
-  LDA #$00
-  STA $2006             
-  LDX #$00              
-LoadPalettes4Loop:
-  LDA palette4, x       
-  STA $2007             
-  INX                   
-  CPX #$20              
-  BNE LoadPalettes4Loop  
+  JSR LoadPalette4
   JSR LoadSong4Background
   JSR AS_StartPlayingCurrentTrack
-  RTS 
+  JMP FinishStartPressed 
 
 PlayTrack5: 
   LDA #$05
   STA playingSongNumber
-LoadPalettes5:
-  LDA $2002             
-  LDA #$3F
-  STA $2006             
-  LDA #$00
-  STA $2006             
-  LDX #$00              
-LoadPalettes5Loop:
-  LDA palette5, x       
-  STA $2007             
-  INX                   
-  CPX #$20              
-  BNE LoadPalettes5Loop  
+  JSR LoadPalette5
   JSR LoadSong5Background
   JSR AS_StartPlayingCurrentTrack
-  RTS
+  JMP FinishStartPressed
 
 PlayingSelectPressed:
   JSR AS_StopMusic
   
   JSR ResetPPU
+  JSR LoadPalette1
   JSR LoadBackground  
   RTS 
 
@@ -742,6 +703,10 @@ palette2:
   .incbin "bg2.pal"
   .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
 
+palette3:
+  .incbin "bg3.pal"
+  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
+
 palette4:
   .incbin "bg4.pal"
   .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
@@ -759,7 +724,10 @@ song1_background:
   
 song2_background:
   .incbin "song2.nam"
-
+  
+song3_background:
+  .incbin "song3.nam"
+  
 song4_background:
   .incbin "song4.nam"
 

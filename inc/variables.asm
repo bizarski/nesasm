@@ -21,3 +21,5 @@ samplePointer   .rs 1
 playingSongNumber .rs 1
 
 arrowPosition   .rs 1
+
+palettePosition .rs 2
