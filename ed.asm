@@ -1,4 +1,4 @@
-  .inesprg 4   ; 4x 16KB PRG code (banks 0, 1, 2, 3); UNROM has 4 or 8 banks
+  .inesprg 8   ; 4x 16KB PRG code (banks 0, 1, 2, 3); UNROM has 4 or 8 banks
   .ineschr 1   ; 1x  8KB CHR data (bank 4)
   .inesmap 2   ; mapper 0 = NROM, no bank swapping; 2 = UNROM
   .inesmir 1   ; background mirroring
@@ -19,20 +19,33 @@
 	.bank 0	; 1/4 8k-9999
 	.org LOAD_ADDRESS_BANK_1
   incbin "NSFs/1_2_3.nsf"
-;	.bank 1 ; 1/4 Ak-B999
 
 	.bank 2	; 2/4 8k-9999
 	.org LOAD_ADDRESS_BANK_2
   incbin "NSFs/4_5.nsf"
-;	.bank 3 ; 2/4 Ak-B999
 
 	.bank 4	; 3/4 8k-9999
-	.org $8000
-
-	.bank 5 ; 3/4 Ak-B999
-	.org $A000
+	.org LOAD_ADDRESS_BANK_3
+  incbin "NSFs/6_7.nsf"
 
 	.bank 6 ; (4/4 last bank/fixed) $C000
+	.org LOAD_ADDRESS_BANK_4
+  incbin "NSFs/8_9.nsf"
+
+    .bank 8
+	.org LOAD_ADDRESS_BANK_5
+  incbin "NSFs/10.nsf"
+	
+	.bank 10
+	.org LOAD_ADDRESS_BANK_6
+  incbin "NSFs/11_12.nsf"
+	
+	.bank 12
+	.org LOAD_ADDRESS_BANK_7
+  incbin "NSFs/13.nsf"
+	
+	.bank 14
+  
 	.org $C000
   
   .include "inc/samples.asm"
@@ -471,61 +484,28 @@ TitleStartPressed:
   BEQ goto_PlayTrack4
   CMP #TRACK_5
   BEQ goto_PlayTrack5
+  CMP #TRACK_6
+  BEQ goto_PlayTrack6
+  CMP #TRACK_7
+  BEQ goto_PlayTrack7
+  CMP #TRACK_8
+  BEQ goto_PlayTrack8
+  CMP #TRACK_9
+  BEQ goto_PlayTrack9
+  CMP #TRACK_10
+  BEQ goto_PlayTrack10
+  CMP #TRACK_11
+  BEQ goto_PlayTrack11
+  CMP #TRACK_12
+  BEQ goto_PlayTrack12
+  CMP #TRACK_13
+  BEQ goto_PlayTrack13
+  
+ 
 FinishStartPressed:
   RTS 
 
-
-goto_PlayTrack1:
-  JMP PlayTrack1
-goto_PlayTrack2:
-  JMP PlayTrack2
-goto_PlayTrack3:
-  JMP PlayTrack3
-goto_PlayTrack4:
-  JMP PlayTrack4
-goto_PlayTrack5:
-  JMP PlayTrack5
-
-
-PlayTrack1:
-  LDA #$01
-  STA playingSongNumber
-  JSR LoadPalette1
-  JSR LoadSong1Background
-  JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
-
-PlayTrack2: 
-  LDA #$02
-  STA playingSongNumber
-  JSR LoadPalette2
-  JSR LoadSong2Background
-  JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed 
-
-PlayTrack3: 
-  LDA #$03
-  STA playingSongNumber
-  JSR LoadPalette3
-  JSR LoadSong3Background
-  JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
-
-PlayTrack4: 
-  LDA #$04
-  STA playingSongNumber
-  JSR LoadPalette4
-  JSR LoadSong4Background
-  JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed 
-
-PlayTrack5: 
-  LDA #$05
-  STA playingSongNumber
-  JSR LoadPalette5
-  JSR LoadSong5Background
-  JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  .include "inc/play_routines.asm"
 
 PlayingSelectPressed:
   JSR AS_StopMusic
@@ -658,7 +638,7 @@ Bleep:
 ;;;;;;;;;;;;;;;;;;;;
 
 
-  .bank 7 ; (4/4 last bank/fixed) $E000
+  .bank 15 ; (4/4 last bank/fixed) $E000
   .org $E000
 
 
@@ -737,9 +717,9 @@ song5_background:
 ;;;;;;;;;;;;;;;;;;;;
 
 banktable:              ; Write to this table to switch banks.
-  .byte $00, $00, $00, $01, $01, $05, $06, $07, $08, $09, $0A, $0B
+  .byte $00, $00, $00, $01, $01, $02, $02, $03, $03, $04, $05, $05, $06
 trackNumberInBankTable:
-  .byte $00, $01, $02, $00, $01, $00, $00, $00, $00, $00, $00, $00
+  .byte $00, $01, $02, $00, $01, $00, $01, $00, $01, $00, $00, $01, $00
 
 ;;;;;;;;;;;;;;;;
 
@@ -753,7 +733,7 @@ trackNumberInBankTable:
 ;;;;;;;;;;;;;;  
   
   
-  .bank 8
+  .bank 16
   .org $0000
   .incbin "ed.chr"   ;includes 8KB graphics file from SMB1 
   
