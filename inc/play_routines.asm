@@ -70,7 +70,7 @@ PlayTrack6:
   LDA #$06
   STA playingSongNumber
   JSR LoadPalette5
-  JSR LoadSong5Background
+  JSR LoadSong6Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
 
@@ -78,7 +78,7 @@ PlayTrack7:
   LDA #$07
   STA playingSongNumber
   JSR LoadPalette5
-  JSR LoadSong5Background
+  JSR LoadSong7Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
 
@@ -86,7 +86,7 @@ PlayTrack8:
   LDA #$08
   STA playingSongNumber
   JSR LoadPalette5
-  JSR LoadSong5Background
+  JSR LoadSong8Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
 
@@ -94,7 +94,7 @@ PlayTrack9:
   LDA #$09
   STA playingSongNumber
   JSR LoadPalette5
-  JSR LoadSong5Background
+  JSR LoadSong9Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
 
@@ -102,7 +102,7 @@ PlayTrack10:
   LDA #$0A
   STA playingSongNumber
   JSR LoadPalette5
-  JSR LoadSong5Background
+  JSR LoadSong10Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
 
@@ -110,7 +110,7 @@ PlayTrack11:
   LDA #$0B
   STA playingSongNumber
   JSR LoadPalette5
-  JSR LoadSong5Background
+  JSR LoadSong11Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
   
@@ -118,7 +118,7 @@ PlayTrack12:
   LDA #$0C
   STA playingSongNumber
   JSR LoadPalette5
-  JSR LoadSong5Background
+  JSR LoadSong12Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
 
@@ -126,6 +126,6 @@ PlayTrack13:
   LDA #$0D
   STA playingSongNumber
   JSR LoadPalette5
-  JSR LoadSong5Background
+  JSR LoadSong13Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed

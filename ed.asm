@@ -671,6 +671,7 @@ LoadSpritesLoop:
   RTS 
 
 
+  .include "bg-stage.asm"
   .include "inc/backgrounds.asm"
 
   .include "inc/sprites.asm"
@@ -699,20 +700,6 @@ palette5:
 menu_background:
   .incbin "menu.nam"
 
-song1_background:
-  .incbin "song1.nam"
-  
-song2_background:
-  .incbin "song2.nam"
-  
-song3_background:
-  .incbin "song3.nam"
-  
-song4_background:
-  .incbin "song4.nam"
-
-song5_background:
-  .incbin "song5.nam"
 
 ;;;;;;;;;;;;;;;;;;;;
 

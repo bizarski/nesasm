@@ -5,6 +5,8 @@ buttonlatch		.rs 1
 
 pointerLo  		.rs 1   ; pointer variables are declared in RAM
 pointerHi  		.rs 1   ; low byte first, high byte immediately after
+pointerLo2      .rs 1
+pointerHi2      .rs 1
 
 nextFrame       .rs 1
 frameTimeout    .rs 1
