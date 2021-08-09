@@ -45,7 +45,7 @@ PlayTrack2:
 PlayTrack3: 
   LDA #$03
   STA playingSongNumber
-  JSR LoadPalette3
+  JSR LoadPalette1
   JSR LoadSong3Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed

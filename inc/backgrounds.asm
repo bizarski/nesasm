@@ -10,33 +10,33 @@ LoadSong1Background:
   RTS 
  
 LoadSong2Background: 
-  JSR LoadNametableTop
-  LDA #low(track2title)
+  LDA #low(track2bgfull)
   STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(track2title)
+  LDA #HIGH(track2bgfull)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
-  JSR LoadNametableBottom
+  LDX #$00            ; start at pointer + 0
+  LDY #$00
+  JSR LoadNametable
   RTS 
  
 LoadSong3Background: 
-  JSR LoadNametableTop
+  JSR LoadNametableHUD
   LDA #low(track3title)
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track3title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
+  JSR LoadNametableSongTop
   JSR LoadNametableBottom
   RTS 
   
 LoadSong4Background: 
-  JSR LoadNametableTop
-  LDA #low(track4title)
+  JSR LoadNametableHUD
+  LDA #low(track4body)
   STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(track4title)
+  LDA #HIGH(track4body)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
-  JSR LoadNametableBottom
+  JSR LoadNametableSongBody
+  JSR LoadNametableMostBottom
   RTS 
 
 LoadSong5Background: 
@@ -148,6 +148,26 @@ LoadNameTableTopLoop:
   CPY #$E0
   BNE LoadNameTableTopLoop 
   RTS
+  
+LoadNametableHUD:
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+  LDA #low(bgtop)
+  STA pointerLo2        
+  LDA #HIGH(bgtop)
+  STA pointerHi2   
+  LDY #$00
+  LDX #$00
+LoadNametableHUDLoop:
+  LDA [pointerLo2], y				
+  STA $2007							
+  INY
+  CPY #$80
+  BNE LoadNametableHUDLoop 
+  RTS
 	
 LoadNametableTitle:
   LDY #$00
@@ -158,6 +178,52 @@ LoadNametableTitleLoop:
   INY
   CPY #$40
   BNE LoadNametableTitleLoop 
+  RTS
+
+LoadNametableSongTop:
+  LDY #$00
+  LDX #$00
+LoadNametableSongTopLoop:
+  LDA [pointerLo], y				
+  STA $2007							
+  INY
+  CPY #$A0
+  BNE LoadNametableSongTopLoop 
+  RTS
+
+
+LoadNametableSongBody:
+  LDY #$00
+  LDX #$00
+LoadNametableSongBodyLoop:
+  LDA [pointerLo], Y					
+  STA $2007							
+  INY  
+  CPY #$FF
+  BNE LoadNametableSongBodyLoop  
+  LDA [pointerLo], Y					
+  STA $2007						
+  INY								
+  INX								
+  INC pointerHi						
+  CPX #$02
+  BNE LoadNametableSongBodyLoop	
+  JSR LoadNametableTitle ; gonna count to 4 which is exactly how many more rows we need 
+  RTS
+
+LoadNametableMostBottom:
+  LDY #$00
+  LDX #$00
+  LDA #low(bgmostbottom)
+  STA pointerLo
+  LDA #HIGH(bgmostbottom)
+  STA pointerHi
+LoadNametableMostBottomLoop:
+  LDA [pointerLo], Y					; load data using indirect indexed addressing (Y must be used in this mode)
+  STA $2007							; write to PPU
+  INY
+  CPY #$FF
+  BNE LoadNametableMostBottomLoop  ; branch when Y reaches $FF = 255 (255 bytes have been loaded).
   RTS
 
 LoadNametableBottom:
@@ -217,14 +283,6 @@ LoadPalette2:
   LDA #low(palette2)
   STA pointerLo       
   LDA #HIGH(palette2)
-  STA pointerHi      
-  JSR LoadPaletteRoutine
-  RTS 
-
-LoadPalette3: 
-  LDA #low(palette3)
-  STA pointerLo       
-  LDA #HIGH(palette3)
   STA pointerHi      
   JSR LoadPaletteRoutine
   RTS 
