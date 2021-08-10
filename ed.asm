@@ -236,6 +236,9 @@ ShowSparx:
   JSR ShowSpratzX
   LDA #SPRITE_SPR_Y
   JSR ShowSpratzY
+  LDX #LOW(SPRATZ_RAM)
+  LDA currentHero
+  JSR ChangeHeroTiles
 DontShowSprites:
   RTS 
   
@@ -292,6 +295,17 @@ ShowSpratzY:
   ADC #$08
   STA ($0400+4*6), x
   STA ($0400+4*7), x
+  RTS 
+
+ChangeHeroTiles: 
+  STA ($0400+1), x
+  CLC
+  ADC #$01
+  STA ($0400+1+4), x
+  ADC #$0F
+  STA ($0400+1+4*2), x
+  ADC #$01
+  STA ($0400+1+4*3), x
   RTS 
 
 ReadController1:
@@ -405,14 +419,9 @@ PlaySampleB:
 
 EnginePlaying_ResetTriggers: 
 ResetHead: 
-  LDA #$00 
-  STA (SPRATZ_RAM+1)
-  LDA #$01 
-  STA (SPRATZ_RAM+1+4)
-  LDA #$10
-  STA (SPRATZ_RAM+1+4*2)
-  LDA #$11
-  STA (SPRATZ_RAM+1+4*3)
+  LDX #LOW(SPRATZ_RAM)
+  LDA currentHero
+  JSR ChangeHeroTiles
   LDA #$21
   STA (SPRATZ_RAM+1+4*5)
 ResetGuiness: 
@@ -431,14 +440,9 @@ ResetSamples:
   RTS
 
 SpritesBop: 
-  LDA #$08 
-  STA SPRATZ_RAM+1
-  LDA #$09 
-  STA (SPRATZ_RAM+1+4)
-  LDA #$18
-  STA (SPRATZ_RAM+1+4*2)
-  LDA #$19
-  STA (SPRATZ_RAM+1+4*3)
+  LDX #LOW(SPRATZ_RAM)
+  LDA currentHeroBop
+  JSR ChangeHeroTiles
   LDA #$29
   STA (SPRATZ_RAM+1+4*5)
 
@@ -703,6 +707,12 @@ banktable:              ; Write to this table to switch banks.
   .byte $00, $00, $00, $01, $01, $02, $02, $03, $03, $04, $05, $05, $06
 trackNumberInBankTable:
   .byte $00, $01, $02, $00, $01, $00, $01, $00, $01, $00, $00, $01, $00
+heroSparx: 
+  .byte $00, $08
+heroZappa: 
+  .byte $60, $62
+heroIvo: 
+  .byte $40, $42
 
 ;;;;;;;;;;;;;;;;
 

@@ -12,6 +12,8 @@ nextFrame       .rs 1
 frameTimeout    .rs 1
 
 currentSong     .rs 1
+currentHero     .rs 1
+currentHeroBop  .rs 1
   
 gameFlags       .rs 1
 soundFlags      .rs 1

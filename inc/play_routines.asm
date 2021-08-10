@@ -29,6 +29,10 @@ goto_PlayTrack13:
 PlayTrack1:
   LDA #$01
   STA playingSongNumber
+  LDA heroSparx+0
+  STA currentHero
+  LDA heroSparx+1
+  STA currentHeroBop
   JSR LoadPalette1
   JSR LoadSong1Background
   JSR AS_StartPlayingCurrentTrack
@@ -37,6 +41,10 @@ PlayTrack1:
 PlayTrack2: 
   LDA #$02
   STA playingSongNumber
+  LDA heroSparx+0
+  STA currentHero
+  LDA heroSparx+1
+  STA currentHeroBop
   JSR LoadPalette2
   JSR LoadSong2Background
   JSR AS_StartPlayingCurrentTrack
@@ -45,6 +53,10 @@ PlayTrack2:
 PlayTrack3: 
   LDA #$03
   STA playingSongNumber
+  LDA heroSparx+0
+  STA currentHero
+  LDA heroSparx+1
+  STA currentHeroBop
   JSR LoadPalette1
   JSR LoadSong3Background
   JSR AS_StartPlayingCurrentTrack
@@ -53,6 +65,10 @@ PlayTrack3:
 PlayTrack4: 
   LDA #$04
   STA playingSongNumber
+  LDA heroSparx+0
+  STA currentHero
+  LDA heroSparx+1
+  STA currentHeroBop
   JSR LoadPalette4
   JSR LoadSong4Background
   JSR AS_StartPlayingCurrentTrack
@@ -61,6 +77,10 @@ PlayTrack4:
 PlayTrack5: 
   LDA #$05
   STA playingSongNumber
+  LDA heroSparx+0
+  STA currentHero
+  LDA heroSparx+1
+  STA currentHeroBop
   JSR LoadPalette5
   JSR LoadSong5Background
   JSR AS_StartPlayingCurrentTrack
@@ -69,6 +89,10 @@ PlayTrack5:
 PlayTrack6: 
   LDA #$06
   STA playingSongNumber
+  LDA heroZappa+0
+  STA currentHero
+  LDA heroZappa+1
+  STA currentHeroBop
   JSR LoadPalette5
   JSR LoadSong6Background
   JSR AS_StartPlayingCurrentTrack
@@ -77,6 +101,10 @@ PlayTrack6:
 PlayTrack7: 
   LDA #$07
   STA playingSongNumber
+  LDA heroSparx+0
+  STA currentHero
+  LDA heroSparx+1
+  STA currentHeroBop
   JSR LoadPalette5
   JSR LoadSong7Background
   JSR AS_StartPlayingCurrentTrack
@@ -85,6 +113,10 @@ PlayTrack7:
 PlayTrack8: 
   LDA #$08
   STA playingSongNumber
+  LDA heroSparx+0
+  STA currentHero
+  LDA heroSparx+1
+  STA currentHeroBop
   JSR LoadPalette5
   JSR LoadSong8Background
   JSR AS_StartPlayingCurrentTrack
@@ -93,6 +125,10 @@ PlayTrack8:
 PlayTrack9: 
   LDA #$09
   STA playingSongNumber
+  LDA heroSparx+0
+  STA currentHero
+  LDA heroSparx+1
+  STA currentHeroBop
   JSR LoadPalette5
   JSR LoadSong9Background
   JSR AS_StartPlayingCurrentTrack
@@ -101,6 +137,10 @@ PlayTrack9:
 PlayTrack10: 
   LDA #$0A
   STA playingSongNumber
+  LDA heroSparx+0
+  STA currentHero
+  LDA heroSparx+1
+  STA currentHeroBop
   JSR LoadPalette5
   JSR LoadSong10Background
   JSR AS_StartPlayingCurrentTrack
@@ -109,6 +149,10 @@ PlayTrack10:
 PlayTrack11: 
   LDA #$0B
   STA playingSongNumber
+  LDA heroSparx+0
+  STA currentHero
+  LDA heroSparx+1
+  STA currentHeroBop
   JSR LoadPalette5
   JSR LoadSong11Background
   JSR AS_StartPlayingCurrentTrack
@@ -117,6 +161,10 @@ PlayTrack11:
 PlayTrack12: 
   LDA #$0C
   STA playingSongNumber
+  LDA heroSparx+0
+  STA currentHero
+  LDA heroSparx+1
+  STA currentHeroBop
   JSR LoadPalette5
   JSR LoadSong12Background
   JSR AS_StartPlayingCurrentTrack
@@ -125,6 +173,10 @@ PlayTrack12:
 PlayTrack13: 
   LDA #$0D
   STA playingSongNumber
+  LDA heroIvo+0
+  STA currentHero
+  LDA heroIvo+1
+  STA currentHeroBop
   JSR LoadPalette5
   JSR LoadSong13Background
   JSR AS_StartPlayingCurrentTrack
