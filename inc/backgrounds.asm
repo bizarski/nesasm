@@ -1,11 +1,20 @@
 
 LoadSong1Background: 
   JSR LoadNametableTop
+  JSR LoadBlackLine
+  JSR LoadBlackLine
   LDA #low(track1title)
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track1title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
+  LDY #$00
+  LDX #$00
+LoadNametableTitle1Loop:
+  LDA [pointerLo], y				
+  STA $2007							
+  INY
+  CPY #$20
+  BNE LoadNametableTitle1Loop 
   JSR LoadNametableBottom
   RTS 
  
@@ -129,12 +138,25 @@ LoadSong13Background:
   JSR LoadNametableBottom
   RTS 
 
+LoadBlackLine: 
+  LDX #$00
+  LDA #$24
+LoadBlackLineLoop
+  STA $2007		
+  INX
+  CPX #$10
+  BNE LoadBlackLineLoop
+  RTS 
+
 LoadNametableTop:
   LDA $2002             ; read PPU status to reset the high/low latch
   LDA #$20
   STA $2006             ; write the high byte of $2000 address
   LDA #$00
   STA $2006             ; write the low byte of $2000 address
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
   LDA #low(bgtop)
   STA pointerLo2        
   LDA #HIGH(bgtop)
@@ -145,7 +167,7 @@ LoadNameTableTopLoop:
   LDA [pointerLo2], y				
   STA $2007							
   INY
-  CPY #$E0
+  CPY #$B0
   BNE LoadNameTableTopLoop 
   RTS
   
@@ -155,6 +177,9 @@ LoadNametableHUD:
   STA $2006             ; write the high byte of $2000 address
   LDA #$00
   STA $2006             ; write the low byte of $2000 address
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
   LDA #low(bgtop)
   STA pointerLo2        
   LDA #HIGH(bgtop)
@@ -165,7 +190,7 @@ LoadNametableHUDLoop:
   LDA [pointerLo2], y				
   STA $2007							
   INY
-  CPY #$80
+  CPY #$50
   BNE LoadNametableHUDLoop 
   RTS
 	
@@ -227,6 +252,8 @@ LoadNametableMostBottomLoop:
   RTS
 
 LoadNametableBottom:
+  JSR LoadBlackLine
+  JSR LoadBlackLine
   LDY #$00
   LDX #$00
   LDA #low(bgbottom)
@@ -234,18 +261,18 @@ LoadNametableBottom:
   LDA #HIGH(bgbottom)
   STA pointerHi
 LoadNametableBottomLoop:
-  LDA [pointerLo], Y					; load data using indirect indexed addressing (Y must be used in this mode)
-  STA $2007							; write to PPU
+  LDA [pointerLo], Y					
+  STA $2007							
   INY
   CPY #$FF
-  BNE LoadNametableBottomLoop  ; branch when Y reaches $FF = 255 (255 bytes have been loaded).
-  LDA [pointerLo], Y					; since the loop ends before Y=$FF is used, run one more time to get to 256 bytes.
-  STA $2007							; write to PPU
-  INY								; increment Y to overflow back to $00 and prepare for next round
-  INX								; increment X now that the first of four blocks of 256 bytes is done
-  INC pointerHi						; move offset to next 256-byte block of memory
+  BNE LoadNametableBottomLoop  
+  LDA [pointerLo], Y					
+  STA $2007							
+  INY								
+  INX								
+  INC pointerHi						
   CPX #$03
-  BNE LoadNametableBottomLoop	; when X=$04, 4 rounds of 256 are complete for a full 1024 bytes read.
+  BNE LoadNametableBottomLoop	
   RTS
 
 
