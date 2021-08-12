@@ -7,14 +7,11 @@ LoadSong1Background:
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track1title)
   STA pointerHi       ; put the high byte of the address into pointer
-  LDY #$00
-  LDX #$00
-LoadNametableTitle1Loop:
-  LDA [pointerLo], y				
-  STA $2007							
-  INY
-  CPY #$20
-  BNE LoadNametableTitle1Loop 
+  
+  LDA #$20
+  STA tmp
+  JSR LoadXRowsNametable
+  
   JSR LoadNametableBottom
   RTS 
  
@@ -34,7 +31,10 @@ LoadSong3Background:
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track3title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableSongTop
+
+  LDA #$A0
+  STA tmp
+  JSR LoadXRowsNametable
   JSR LoadNametableBottom
   RTS 
   
@@ -45,17 +45,48 @@ LoadSong4Background:
   LDA #HIGH(track4body)
   STA pointerHi       ; put the high byte of the address into pointer
   JSR LoadNametableSongBody
-  JSR LoadNametableMostBottom
   RTS 
 
 LoadSong5Background: 
-  JSR LoadNametableTop
+  JSR LoadNametableHUD
   LDA #low(track5title)
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track5title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
-  JSR LoadNametableBottom
+
+  LDA #$A0
+  STA tmp
+  JSR LoadXRowsNametable
+
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  LDY #$00
+  LDX #$00
+  LDA #low(bgbottom)
+  STA pointerLo
+  LDA #HIGH(bgbottom)
+  STA pointerHi
+  
+  LDA #$00	; FF + 1
+  STA tmp
+  JSR LoadXRowsNametable
+  
+  INC pointerHi						
+ 
+  LDA #$C0
+  STA tmp
+  
+  JSR LoadXRowsNametable
+  
+  LDA #low(track5bottom)
+  STA pointerLo
+  LDA #HIGH(track5bottom)
+  STA pointerHi
+  
+  LDA #$00	; FF + 1
+  STA tmp
+  JSR LoadXRowsNametable
+  
   RTS 
 
 LoadSong6Background: 
@@ -64,7 +95,11 @@ LoadSong6Background:
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track6title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
+  
+  LDA #$40
+  STA tmp
+  JSR LoadXRowsNametable
+  
   JSR LoadNametableBottom
   RTS 
 
@@ -74,7 +109,11 @@ LoadSong7Background:
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track7title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
+
+  LDA #$40
+  STA tmp
+  JSR LoadXRowsNametable
+
   JSR LoadNametableBottom
   RTS 
 
@@ -84,7 +123,11 @@ LoadSong8Background:
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track8title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
+
+  LDA #$40
+  STA tmp
+  JSR LoadXRowsNametable
+
   JSR LoadNametableBottom
   RTS 
   
@@ -94,7 +137,11 @@ LoadSong9Background:
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track9title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
+
+  LDA #$40
+  STA tmp
+  JSR LoadXRowsNametable
+
   JSR LoadNametableBottom
   RTS 
   
@@ -104,7 +151,11 @@ LoadSong10Background:
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track10title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
+
+  LDA #$40
+  STA tmp
+  JSR LoadXRowsNametable
+
   JSR LoadNametableBottom
   RTS 
   
@@ -114,7 +165,11 @@ LoadSong11Background:
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track11title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
+
+  LDA #$40
+  STA tmp
+  JSR LoadXRowsNametable
+
   JSR LoadNametableBottom
   RTS 
   
@@ -124,7 +179,11 @@ LoadSong12Background:
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track12title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
+
+  LDA #$40
+  STA tmp
+  JSR LoadXRowsNametable
+
   JSR LoadNametableBottom
   RTS 
   
@@ -134,7 +193,11 @@ LoadSong13Background:
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track13title)
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadNametableTitle
+
+  LDA #$40
+  STA tmp
+  JSR LoadXRowsNametable
+
   JSR LoadNametableBottom
   RTS 
 
@@ -193,29 +256,16 @@ LoadNametableHUDLoop:
   CPY #$50
   BNE LoadNametableHUDLoop 
   RTS
-	
-LoadNametableTitle:
+
+LoadXRowsNametable:
   LDY #$00
-  LDX #$00
-LoadNametableTitleLoop:
+LoadXRowsNametableLoop:
   LDA [pointerLo], y				
   STA $2007							
   INY
-  CPY #$40
-  BNE LoadNametableTitleLoop 
+  CPY tmp
+  BNE LoadXRowsNametableLoop 
   RTS
-
-LoadNametableSongTop:
-  LDY #$00
-  LDX #$00
-LoadNametableSongTopLoop:
-  LDA [pointerLo], y				
-  STA $2007							
-  INY
-  CPY #$A0
-  BNE LoadNametableSongTopLoop 
-  RTS
-
 
 LoadNametableSongBody:
   LDY #$00
@@ -231,9 +281,8 @@ LoadNametableSongBodyLoop:
   INY								
   INX								
   INC pointerHi						
-  CPX #$02
+  CPX #$04
   BNE LoadNametableSongBodyLoop	
-  JSR LoadNametableTitle ; gonna count to 4 which is exactly how many more rows we need 
   RTS
 
 LoadNametableMostBottom:
@@ -244,11 +293,18 @@ LoadNametableMostBottom:
   LDA #HIGH(bgmostbottom)
   STA pointerHi
 LoadNametableMostBottomLoop:
-  LDA [pointerLo], Y					; load data using indirect indexed addressing (Y must be used in this mode)
-  STA $2007							; write to PPU
-  INY
+  LDA [pointerLo], Y					
+  STA $2007							
+  INY  
   CPY #$FF
-  BNE LoadNametableMostBottomLoop  ; branch when Y reaches $FF = 255 (255 bytes have been loaded).
+  BNE LoadNametableMostBottomLoop  
+  LDA [pointerLo], Y					
+  STA $2007						
+  INY								
+  INX								
+  INC pointerHi						
+  CPX #$02
+  BNE LoadNametableMostBottomLoop	
   RTS
 
 LoadNametableBottom:

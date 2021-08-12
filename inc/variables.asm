@@ -8,6 +8,8 @@ pointerHi  		.rs 1   ; low byte first, high byte immediately after
 pointerLo2      .rs 1
 pointerHi2      .rs 1
 
+tmp				.rs 1
+
 nextFrame       .rs 1
 frameTimeout    .rs 1
 
