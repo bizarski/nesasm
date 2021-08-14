@@ -16,13 +16,34 @@ LoadSong1Background:
   RTS 
  
 LoadSong2Background: 
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+
   LDA #low(track2bgfull)
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track2bgfull)
   STA pointerHi       ; put the high byte of the address into pointer
-  LDX #$00            ; start at pointer + 0
-  LDY #$00
-  JSR LoadNametable
+  
+  LDA #$00
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
+  JSR LoadXRowsNametable
+  INC pointerHi
+  JSR LoadXRowsNametable
+  INC pointerHi
+  
+  LDA #$D0
+  STA tmp 
+  JSR LoadXRowsNametable
+  
   RTS 
  
 LoadSong3Background: 
@@ -35,7 +56,39 @@ LoadSong3Background:
   LDA #$A0
   STA tmp
   JSR LoadXRowsNametable
-  JSR LoadNametableBottom
+  
+  
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  LDY #$00
+  LDX #$00
+  LDA #low(bgbottom)
+  STA pointerLo
+  LDA #HIGH(bgbottom)
+  STA pointerHi
+  
+  LDA #$00
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
+  JSR LoadXRowsNametable
+  INC pointerHi
+  LDA #$60 
+  STA tmp 
+  JSR LoadXRowsNametable
+
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  
+  LDA #low(track3attributes)
+  STA pointerLo
+  LDA #HIGH(track3attributes)
+  STA pointerHi
+  
+  LDA #$40 
+  STA tmp 
+  JSR LoadXRowsNametable
+  
   RTS 
   
 LoadSong4Background: 
@@ -122,9 +175,12 @@ LoadSong6Background:
   INC pointerHi
   JSR LoadXRowsNametable
   INC pointerHi
-  LDA #$80
+  LDA #$60
   STA tmp 
   JSR LoadXRowsNametable
+  
+  JSR LoadBlackLine
+  JSR LoadBlackLine
   
   LDA #low(track6attributes)
   STA pointerLo       ; put the low byte of the address of background into pointer
@@ -139,6 +195,7 @@ LoadSong6Background:
 
 LoadSong7Background: 
   JSR LoadNametableHUD
+  
   LDA #low(track7title)
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track7title)
@@ -181,17 +238,80 @@ LoadSong7Background:
   RTS 
 
 LoadSong8Background: 
-  JSR LoadNametableTop
-  LDA #low(track8title)
+  JSR LoadNametableHUD
+
+  JSR LoadBlackLine
+
+  LDA #low(track8bg)
   STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(track8title)
+  LDA #HIGH(track8bg)
   STA pointerHi       ; put the high byte of the address into pointer
 
-  LDA #$40
+  LDA #$10
   STA tmp
   JSR LoadXRowsNametable
+  
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  
+  LDA #$70
+  STA tmp
+  JSR LoadXRowsNametableLoop
 
-  JSR LoadNametableBottom
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  
+  LDA #$A0
+  STA tmp
+  JSR LoadXRowsNametableLoop
+  
+  JSR LoadBlackLine
+  
+  LDA #$D0
+  STA tmp
+  JSR LoadXRowsNametableLoop
+  
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  
+  LDA #$00
+  STA tmp
+  JSR LoadXRowsNametableLoop
+  
+  INC pointerHi
+  
+  LDA #$40
+  STA tmp
+  JSR LoadXRowsNametableLoop
+  
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  
+  LDA #$60
+  STA tmp
+  JSR LoadXRowsNametableLoop
+  
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+
+  LDA #$00
+  STA tmp
+  JSR LoadXRowsNametableLoop
+  
+  INC pointerHi
+  
+  LDA #$40
+  STA tmp
+  JSR LoadXRowsNametableLoop
+
   RTS 
   
 LoadSong9Background: 
@@ -287,9 +407,13 @@ LoadNametableTop:
   STA pointerLo        
   LDA #HIGH(bgtop)
   STA pointerHi 
-  LDA #$B0
+  LDA #$30
   STA tmp
   JSR LoadXRowsNametable 
+  JSR LoadBlackLine
+  LDA #$A0
+  STA tmp
+  JSR LoadXRowsNametableLoop 
   RTS
   
 LoadNametableHUD:
@@ -305,14 +429,13 @@ LoadNametableHUD:
   STA pointerLo    
   LDA #HIGH(bgtop)
   STA pointerHi
-  LDY #$00
-  LDX #$00
-LoadNametableHUDLoop:
-  LDA [pointerLo], y				
-  STA $2007							
-  INY
-  CPY #$50
-  BNE LoadNametableHUDLoop 
+  LDA #$30
+  STA tmp
+  JSR LoadXRowsNametable 
+  JSR LoadBlackLine
+  LDA #$40
+  STA tmp
+  JSR LoadXRowsNametableLoop 
   RTS
 
 LoadXRowsNametable:
@@ -359,9 +482,16 @@ LoadNametableBottom:
   INC pointerHi
   JSR LoadXRowsNametable
   INC pointerHi
-  LDA #$BA
+  LDA #$60 
   STA tmp 
   JSR LoadXRowsNametable
+
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  
+  LDA #$A0 
+  STA tmp 
+  JSR LoadXRowsNametableLoop
 
   RTS
 

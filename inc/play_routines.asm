@@ -117,7 +117,7 @@ PlayTrack8:
   STA currentHero
   LDA heroSparx+1
   STA currentHeroBop
-  JSR LoadPalette5
+  JSR LoadPalette1
   JSR LoadSong8Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
