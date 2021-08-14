@@ -122,12 +122,18 @@ LoadSong4Background:
 
 LoadSong5Background: 
   JSR LoadNametableHUD
+  
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  
   LDA #low(track5title)
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track5title)
   STA pointerHi       ; put the high byte of the address into pointer
 
-  LDA #$A0
+  LDA #$60
   STA tmp
   JSR LoadXRowsNametable
 
@@ -209,12 +215,16 @@ LoadSong6Background:
 LoadSong7Background: 
   JSR LoadNametableHUD
   
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  
   LDA #low(track7title)
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track7title)
   STA pointerHi       ; put the high byte of the address into pointer
 
-  LDA #$A0
+  LDA #$70
   STA tmp
   JSR LoadXRowsNametable
   
@@ -555,25 +565,13 @@ LoadBlueLineLoop
   RTS 
 
 LoadNametableTop:
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
-  JSR LoadBlackLine
-  JSR LoadBlackLine
-  JSR LoadBlackLine
-  LDA #low(bgtop)
-  STA pointerLo        
-  LDA #HIGH(bgtop)
-  STA pointerHi 
-  LDA #$30
-  STA tmp
-  JSR LoadXRowsNametable 
-  JSR LoadBlackLine
-  LDA #$A0
-  STA tmp
-  JSR LoadXRowsNametableLoop 
+  JSR LoadNametableHUD
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  JSR LoadBlueLine
   RTS
   
 LoadNametableHUD:
