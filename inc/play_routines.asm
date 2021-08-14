@@ -93,7 +93,7 @@ PlayTrack6:
   STA currentHero
   LDA heroZappa+1
   STA currentHeroBop
-  JSR LoadPalette5
+  JSR LoadPalette6
   JSR LoadSong6Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
@@ -105,7 +105,7 @@ PlayTrack7:
   STA currentHero
   LDA heroSparx+1
   STA currentHeroBop
-  JSR LoadPalette5
+  JSR LoadPalette1
   JSR LoadSong7Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed

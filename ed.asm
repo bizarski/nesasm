@@ -696,7 +696,10 @@ palette5:
   .incbin "bg5.pal"
   .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
 
-  
+palette6:
+  .incbin "bg6.pal"
+  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
+
 menu_background:
   .incbin "menu.nam"
 

@@ -90,31 +90,94 @@ LoadSong5Background:
   RTS 
 
 LoadSong6Background: 
-  JSR LoadNametableTop
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
   LDA #low(track6title)
-  STA pointerLo       ; put the low byte of the address of background into pointer
+  STA pointerLo    
   LDA #HIGH(track6title)
-  STA pointerHi       ; put the high byte of the address into pointer
+  STA pointerHi
   
+  LDA #$00
+  STA tmp
+  JSR LoadXRowsNametable
+  INC pointerHi  
+  LDA #$10
+  STA tmp
+  JSR LoadXRowsNametable
+  
+  LDA #low(bgbottom)
+  STA pointerLo
+  LDA #HIGH(bgbottom)
+  STA pointerHi
+  
+  LDA #$00
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
+  JSR LoadXRowsNametable
+  INC pointerHi
+  LDA #$80
+  STA tmp 
+  JSR LoadXRowsNametable
+  
+  LDA #low(track6attributes)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(track6attributes)
+  STA pointerHi       ; put the high byte of the address into pointer
+
   LDA #$40
   STA tmp
   JSR LoadXRowsNametable
   
-  JSR LoadNametableBottom
   RTS 
 
 LoadSong7Background: 
-  JSR LoadNametableTop
+  JSR LoadNametableHUD
   LDA #low(track7title)
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track7title)
   STA pointerHi       ; put the high byte of the address into pointer
 
+  LDA #$A0
+  STA tmp
+  JSR LoadXRowsNametable
+  
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+
+  LDA #low(bgbottom)
+  STA pointerLo
+  LDA #HIGH(bgbottom)
+  STA pointerHi
+  
+  LDA #$00
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
+  LDA #$80
+  STA tmp 
+  JSR LoadXRowsNametable
+  
+  LDA #low(track7bottom)
+  STA pointerLo
+  LDA #HIGH(track7bottom)
+  STA pointerHi
+  
+  LDA #$00
+  STA tmp
+  JSR LoadXRowsNametable
+  INC pointerHi
+
   LDA #$40
   STA tmp
   JSR LoadXRowsNametable
 
-  JSR LoadNametableBottom
   RTS 
 
 LoadSong8Background: 
@@ -221,17 +284,12 @@ LoadNametableTop:
   JSR LoadBlackLine
   JSR LoadBlackLine
   LDA #low(bgtop)
-  STA pointerLo2        
+  STA pointerLo        
   LDA #HIGH(bgtop)
-  STA pointerHi2   
-  LDY #$00
-  LDX #$00
-LoadNameTableTopLoop:
-  LDA [pointerLo2], y				
-  STA $2007							
-  INY
-  CPY #$B0
-  BNE LoadNameTableTopLoop 
+  STA pointerHi 
+  LDA #$B0
+  STA tmp
+  JSR LoadXRowsNametable 
   RTS
   
 LoadNametableHUD:
@@ -244,13 +302,13 @@ LoadNametableHUD:
   JSR LoadBlackLine
   JSR LoadBlackLine
   LDA #low(bgtop)
-  STA pointerLo2        
+  STA pointerLo    
   LDA #HIGH(bgtop)
-  STA pointerHi2   
+  STA pointerHi
   LDY #$00
   LDX #$00
 LoadNametableHUDLoop:
-  LDA [pointerLo2], y				
+  LDA [pointerLo], y				
   STA $2007							
   INY
   CPY #$50
@@ -285,28 +343,6 @@ LoadNametableSongBodyLoop:
   BNE LoadNametableSongBodyLoop	
   RTS
 
-LoadNametableMostBottom:
-  LDY #$00
-  LDX #$00
-  LDA #low(bgmostbottom)
-  STA pointerLo
-  LDA #HIGH(bgmostbottom)
-  STA pointerHi
-LoadNametableMostBottomLoop:
-  LDA [pointerLo], Y					
-  STA $2007							
-  INY  
-  CPY #$FF
-  BNE LoadNametableMostBottomLoop  
-  LDA [pointerLo], Y					
-  STA $2007						
-  INY								
-  INX								
-  INC pointerHi						
-  CPX #$02
-  BNE LoadNametableMostBottomLoop	
-  RTS
-
 LoadNametableBottom:
   JSR LoadBlackLine
   JSR LoadBlackLine
@@ -316,19 +352,17 @@ LoadNametableBottom:
   STA pointerLo
   LDA #HIGH(bgbottom)
   STA pointerHi
-LoadNametableBottomLoop:
-  LDA [pointerLo], Y					
-  STA $2007							
-  INY
-  CPY #$FF
-  BNE LoadNametableBottomLoop  
-  LDA [pointerLo], Y					
-  STA $2007							
-  INY								
-  INX								
-  INC pointerHi						
-  CPX #$03
-  BNE LoadNametableBottomLoop	
+  
+  LDA #$00
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
+  JSR LoadXRowsNametable
+  INC pointerHi
+  LDA #$BA
+  STA tmp 
+  JSR LoadXRowsNametable
+
   RTS
 
 
@@ -385,7 +419,15 @@ LoadPalette5:
   STA pointerHi      
   JSR LoadPaletteRoutine
   RTS 
-
+  
+LoadPalette6: 
+  LDA #low(palette6)
+  STA pointerLo       
+  LDA #HIGH(palette6)
+  STA pointerHi      
+  JSR LoadPaletteRoutine
+  RTS 
+  
 LoadPaletteRoutine: 
   LDA $2002             
   LDA #$3F
