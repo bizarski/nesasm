@@ -57,7 +57,6 @@ LoadSong3Background:
   STA tmp
   JSR LoadXRowsNametable
   
-  
   JSR LoadBlackLine
   JSR LoadBlackLine
   LDY #$00
@@ -489,7 +488,7 @@ LoadNametableBottom:
   JSR LoadBlackLine
   JSR LoadBlackLine
   
-  LDA #$A0 
+  LDA #$40 
   STA tmp 
   JSR LoadXRowsNametableLoop
 
