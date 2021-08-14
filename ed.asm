@@ -87,7 +87,7 @@ vblankwait2:      ; Second wait for vblank, PPU is ready after this
 
   JSR LoadPalette1
 				
-  JSR LoadBackground
+  JSR LoadMenuBackground
   JSR LoadSprites  
   
   LDA #$00
@@ -516,7 +516,7 @@ PlayingSelectPressed:
   
   JSR ResetPPU
   JSR LoadPalette1
-  JSR LoadBackground  
+  JSR LoadMenuBackground  
   RTS 
 
 ResetPPU: 
@@ -639,14 +639,8 @@ Bleep:
   STA $4003
   RTS
 
-;;;;;;;;;;;;;;;;;;;;
 
-
-  .bank 15 ; (4/4 last bank/fixed) $E000
-  .org $E000
-
-
-LoadBackground:
+LoadMenuBackground:
   LDA $2002             ; read PPU status to reset the high/low latch
   LDA #$20
   STA $2006             ; write the high byte of $2000 address
@@ -675,34 +669,43 @@ LoadSpritesLoop:
   RTS 
 
 
-  .include "bg-stage.asm"
-  .include "inc/backgrounds.asm"
+spritepalette: 
+  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
+
+bgpalette:
+  .incbin "bg.pal"
+
+bgpalette2:
+  .incbin "bg2.pal"
+
+bgpalette4:
+  .incbin "bg4.pal"
+
+bgpalette5:
+  .incbin "bg5.pal"
+
+bgpalette6:
+  .incbin "bg6.pal"
+
+bgpalette9:
+  .incbin "bg9.pal"
+  
+bgpalette11:
+  .incbin "bg11.pal"
 
   .include "inc/sprites.asm"
 
-palette:
-  .incbin "bg.pal"
-  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
+;;;;;;;;;;;;;;;;;;;;
 
-palette2:
-  .incbin "bg2.pal"
-  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
 
-palette4:
-  .incbin "bg4.pal"
-  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
+  .bank 15 ; (4/4 last bank/fixed) $E000
+  .org $E000
 
-palette5:
-  .incbin "bg5.pal"
-  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
-
-palette6:
-  .incbin "bg6.pal"
-  .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
-
+  .include "bg-stage.asm"
+  .include "inc/backgrounds.asm"
+  
 menu_background:
   .incbin "menu.nam"
-
 
 ;;;;;;;;;;;;;;;;;;;;
 

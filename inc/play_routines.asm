@@ -129,7 +129,7 @@ PlayTrack9:
   STA currentHero
   LDA heroSparx+1
   STA currentHeroBop
-  JSR LoadPalette5
+  JSR LoadPalette9
   JSR LoadSong9Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
@@ -141,7 +141,7 @@ PlayTrack10:
   STA currentHero
   LDA heroSparx+1
   STA currentHeroBop
-  JSR LoadPalette5
+  JSR LoadPalette1
   JSR LoadSong10Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
@@ -153,7 +153,7 @@ PlayTrack11:
   STA currentHero
   LDA heroSparx+1
   STA currentHeroBop
-  JSR LoadPalette5
+  JSR LoadPalette11
   JSR LoadSong11Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
@@ -165,7 +165,7 @@ PlayTrack12:
   STA currentHero
   LDA heroSparx+1
   STA currentHeroBop
-  JSR LoadPalette5
+  JSR LoadPalette1
   JSR LoadSong12Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
@@ -177,7 +177,7 @@ PlayTrack13:
   STA currentHero
   LDA heroIvo+1
   STA currentHeroBop
-  JSR LoadPalette5
+  JSR LoadPalette1
   JSR LoadSong13Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed
