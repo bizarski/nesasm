@@ -177,7 +177,7 @@ PlayTrack13:
   STA currentHero
   LDA heroIvo+1
   STA currentHeroBop
-  JSR LoadPalette1
+  JSR LoadPalette13
   JSR LoadSong13Background
   JSR AS_StartPlayingCurrentTrack
   JMP FinishStartPressed

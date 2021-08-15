@@ -94,29 +94,60 @@ LoadSong3Background:
   
 LoadSong4Background: 
   JSR LoadNametableHUD
+  
+  
+  
   LDA #low(track4body)
   STA pointerLo       ; put the low byte of the address of background into pointer
   LDA #HIGH(track4body)
   STA pointerHi       ; put the high byte of the address into pointer
   
-  LDA #$00 
+  LDA #$A0 
   STA tmp 
   JSR LoadXRowsNametable
-  INC pointerHi
-  JSR LoadXRowsNametable
-  INC pointerHi
-  JSR LoadXRowsNametable
-  INC pointerHi
+ 
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+ 
+  LDA #low(bgbottom)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(bgbottom)
+  STA pointerHi       ; put the high byte of the address into pointer
   
-  LDA #$20 
+  LDA #$C0 
   STA tmp 
   JSR LoadXRowsNametable
+  
+  LDA #low(track4body2)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(track4body2)
+  STA pointerHi       ; put the high byte of the address into pointer
+  
+  LDA #$C0 
+  STA tmp 
+  JSR LoadXRowsNametable
+ 
+ 
+  LDA #low(bgmostbottom)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(bgmostbottom)
+  STA pointerHi       ; put the high byte of the address into pointer
+  
+  LDA #$E0 
+  STA tmp 
+  JSR LoadXRowsNametable
+  
   JSR LoadBlackLine
   JSR LoadBlackLine
   
-  LDA #$60 
+  LDA #low(track4attributes)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(track4attributes)
+  STA pointerHi       ; put the high byte of the address into pointer
+  
+  LDA #$40 
   STA tmp 
-  JSR LoadXRowsNametableLoop
+  JSR LoadXRowsNametable
 
   RTS 
 
@@ -517,31 +548,187 @@ LoadSong11Background:
   RTS 
   
 LoadSong12Background: 
-  JSR LoadNametableTop
-  LDA #low(track12title)
-  STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(track12title)
-  STA pointerHi       ; put the high byte of the address into pointer
 
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  LDA #low(track12top)
+  STA pointerLo    
+  LDA #HIGH(track12top)
+  STA pointerHi
+  LDA #$30
+  STA tmp
+  JSR LoadXRowsNametable 
+  JSR LoadBlackLine
   LDA #$40
   STA tmp
+  JSR LoadXRowsNametableLoop 
+
+  LDA #$00
+  STA tmp
+  JSR LoadXFnord
+
+  LDA #low(track12body)
+  STA pointerLo
+  LDA #HIGH(track12body)
+  STA pointerHi
+
+  LDA #$00
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
+  LDA #$A0
+  STA tmp 
   JSR LoadXRowsNametable
 
-  JSR LoadNametableBottom
+  LDA #$A0
+  STA tmp
+  JSR LoadXFnord
+  
+  LDA #low(track12attributes)
+  STA pointerLo
+  LDA #HIGH(track12attributes)
+  STA pointerHi
+
+  LDA #$40
+  STA tmp 
+  JSR LoadXRowsNametable
+
   RTS 
   
-LoadSong13Background: 
-  JSR LoadNametableTop
-  LDA #low(track13title)
-  STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(track13title)
-  STA pointerHi       ; put the high byte of the address into pointer
+LoadXFnord: 
+  LDX #$00
+  LDY #$00
+LoadFnordLoop
+  LDA track12letters, x
+  STA $2007		
 
+  INX
+  INY 
+  CPX #$05
+  BNE DontResetLetters
+  LDX #$00
+DontResetLetters:
+  CPY tmp
+  BNE LoadFnordLoop
+  RTS 
+
+LoadSong13Background: 
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  LDA #low(track13top)
+  STA pointerLo    
+  LDA #HIGH(track13top)
+  STA pointerHi
+  LDA #$30
+  STA tmp
+  JSR LoadXRowsNametable 
+  JSR LoadBlackLine
   LDA #$40
   STA tmp
+  JSR LoadXRowsNametableLoop 
+  
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+  JSR LoadBlueLine
+
+  LDA #$80
+  STA tmp
+  JSR LoadXRowsNametableLoop 
+
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+
+  LDA #low(bgbottom)
+  STA pointerLo
+  LDA #HIGH(bgbottom)
+  STA pointerHi
+  
+  LDA #$90
+  STA tmp 
+  JSR LoadXRowsNametable
+  
+  LDA #low(track13body1)
+  STA pointerLo
+  LDA #HIGH(track13body1)
+  STA pointerHi
+  
+  LDA #$30
+  STA tmp 
+  JSR LoadXRowsNametable
+  
+  LDA #low(bgbottom2)
+  STA pointerLo
+  LDA #HIGH(bgbottom2)
+  STA pointerHi
+
+  LDA #$80
+  STA tmp 
+  JSR LoadXRowsNametable
+  
+  LDA #low(track13body2)
+  STA pointerLo
+  LDA #HIGH(track13body2)
+  STA pointerHi
+  
+  LDA #$40
+  STA tmp 
   JSR LoadXRowsNametable
 
-  JSR LoadNametableBottom
+  LDA #low(bgmostbottom)
+  STA pointerLo
+  LDA #HIGH(bgmostbottom)
+  STA pointerHi
+
+  LDA #$40
+  STA tmp 
+  JSR LoadXRowsNametable
+ 
+  LDA #low(track13body3)
+  STA pointerLo
+  LDA #HIGH(track13body3)
+  STA pointerHi
+  
+  LDA #$20
+  STA tmp 
+  JSR LoadXRowsNametable
+  
+  LDA #low(bgmostbottom2)
+  STA pointerLo
+  LDA #HIGH(bgmostbottom2)
+  STA pointerHi
+
+  LDA #$80
+  STA tmp 
+  JSR LoadXRowsNametable
+  
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+
+  LDA #low(track13attributes)
+  STA pointerLo
+  LDA #HIGH(track13attributes)
+  STA pointerHi
+
+  LDA #$40
+  STA tmp 
+  JSR LoadXRowsNametable
+
+
   RTS 
 
 LoadBlackLine: 
@@ -714,6 +901,14 @@ LoadPalette11:
   LDA #low(bgpalette11)
   STA pointerLo       
   LDA #HIGH(bgpalette11)
+  STA pointerHi      
+  JSR LoadPaletteRoutine
+  RTS 
+  
+LoadPalette13: 
+  LDA #low(bgpalette13)
+  STA pointerLo       
+  LDA #HIGH(bgpalette13)
   STA pointerHi      
   JSR LoadPaletteRoutine
   RTS 

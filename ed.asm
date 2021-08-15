@@ -692,6 +692,9 @@ bgpalette9:
   
 bgpalette11:
   .incbin "bg11.pal"
+  
+bgpalette13:
+  .incbin "bg13.pal"
 
   .include "inc/sprites.asm"
 
