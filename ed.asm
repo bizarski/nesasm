@@ -165,6 +165,8 @@ EnginePlaying:
   
   JSR AnimatePills
   JSR AnimatePills2
+  JSR SpratzCheckHit
+  
   JSR EnginePlaying_ReactToInput
 
   LDA #MUSIC_INITIALIZED
@@ -346,6 +348,9 @@ EngineTitle_ArrowMoveDown:
   RTS 
 
 EnginePlaying_ReactToInput: 
+  LDA #HERO_HIT
+  BIT gameFlags
+  BNE EnginePlaying_PlayingSelectPressed
   LDA buttons1 
   AND #BTN_LEFT 
   BNE EnginePlaying_SpratzMoveLeft
@@ -472,6 +477,11 @@ SkipUpdateSample:
 
 TitleStartPressed: 
   JSR SpratzDirRight
+
+  LDA #HERO_HIT
+  EOR #%11111111
+  AND gameFlags
+  STA gameFlags
   
   LDA #$F0
   STA ARROW_RAM

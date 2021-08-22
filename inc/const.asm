@@ -34,7 +34,7 @@ BTN_A = %01000000
 BTN_B = %10000000
 
 ; game flags: 
-
+HERO_HIT = %00000001
 
 ; sound flags: 
 SAMPLE_PLAYED = %00000001
