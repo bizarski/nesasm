@@ -53,3 +53,10 @@ sprites:
   .db $F0, $4B, %00000000, $F0										  
   
   .db $F0, $0E, %00000010, $F0	 ; inventory								  
+
+pillsprites: 
+  .db $45, $5C, %00000011, $F0	 ; blue pill						  ;00			
+  .db $4D, $6C, %00000011, $F0
+  
+  .db $45, $5C, %00000010, $F0	 ; red pill						  	   
+  .db $4D, $6C, %00000010, $F0

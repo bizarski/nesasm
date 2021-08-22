@@ -95,12 +95,16 @@ vblankwait2:      ; Second wait for vblank, PPU is ready after this
   STA samplePointer
   STA gameFlags
   STA soundFlags
+  STA xpos
   
   LDA #TRACK_1
   STA currentSong
+  STA ARROW_RAM
   
   LDA #$05 
   STA frameTimeout
+
+  STA animationClock
 
   LDA #%10010000 ;enable NMI, sprites from Pattern 0, background from Pattern 1
   STA $2000
@@ -111,6 +115,15 @@ vblankwait2:      ; Second wait for vblank, PPU is ready after this
 ;;;;;;;;;;;;;
 
 Forever:
+AdvanceXPos: 
+  LDA xpos 
+  CLC 
+  ADC #$08 
+  CMP #$B8
+  BCC DontResetXPos
+  LDA #$40
+DontResetXPos: 
+  STA xpos
   JMP Forever     ;jump back to Forever, infinite loop
 
 ;;;;;;;;;;;;;;;
@@ -141,22 +154,18 @@ GameEngineDone:
 
 
 EngineTitle:
-  JSR HideAllSprites
-  LDA currentSong 
-  STA ARROW_RAM
   JSR EngineTitle_ReactToInput
   
   JMP GameEngineDone
 
-EnginePlaying: 
-  LDA #$F0
-  STA ARROW_RAM
-  JSR ShowSongSprites
+EnginePlaying:   
   JSR AdvanceAnimationFrame 
   JSR AnimateGuitars
   JSR AnimateCymbals
+  
+  JSR AnimatePills
+  JSR AnimatePills2
   JSR EnginePlaying_ReactToInput
-
 
   LDA #MUSIC_INITIALIZED
   BIT soundFlags
@@ -171,10 +180,6 @@ GoToInitTrack:
 
 
 HideAllSprites: 
-  LDA #SONG_SPRITES_SHOWN
-  BIT gameFlags
-  BEQ DontHideSprites
-  JSR ToggleSpritesFlag
   LDX #$00
 HideSpritesLoop:
   LDA #$F0
@@ -183,16 +188,12 @@ HideSpritesLoop:
   INX
   INX  
   INX
-  CPX #$B0
+  CPX #$C0
   BNE HideSpritesLoop
 DontHideSprites: 
   RTS 
 
 ShowSongSprites: 
-  LDA #SONG_SPRITES_SHOWN
-  BIT gameFlags
-  BNE DontShowSprites 
-  JSR ToggleSpritesFlag
 ShowElmo: 
   LDX #LOW(ELMO_RAM)
   LDA #SPRITE_ELM_X
@@ -249,12 +250,6 @@ ShowGuiness:
   LDA #SPRITE_GUIN_Y
   JSR ShowMetaSpriteY
   RTS  
-
-ToggleSpritesFlag: 
-  LDA gameFlags
-  EOR #SONG_SPRITES_SHOWN
-  STA gameFlags
-  RTS 
   
 ShowMetaSpriteX: 
   STA ($0400+3), x
@@ -387,7 +382,7 @@ EnginePlaying_SpritesBop:
   JMP SpritesBop
   RTS 
   
-EnginePlaying_PlayingSelectPressed: 
+EnginePlaying_PlayingSelectPressed:
   JMP PlayingSelectPressed
   RTS 
 
@@ -476,6 +471,12 @@ SkipUpdateSample:
   RTS
 
 TitleStartPressed: 
+  JSR SpratzDirRight
+  
+  LDA #$F0
+  STA ARROW_RAM
+  
+  JSR ShowSongSprites
   JSR ResetPPU
 
   LDA currentSong
@@ -516,8 +517,14 @@ PlayingSelectPressed:
   JSR AS_StopMusic
   
   JSR ResetPPU
+  JSR HideAllSprites
+  
   JSR LoadPalette1
   JSR LoadMenuBackground  
+  
+  LDA currentSong 
+  STA ARROW_RAM
+  
   RTS 
 
 ResetPPU: 
@@ -566,130 +573,7 @@ StillMovingDown:
 StopMovingDown:
   RTS
 
-SpratzMoveLeft:
-  LDA #%01000000
-  BIT (SPRATZ_RAM+2)
-  BNE DontUpdateFlag
-  LDY #$00
-  LDX #$00
-FlipLoopLeft:
-  LDA (SPRATZ_RAM+2), y
-  ORA #%01000000
-  STA (SPRATZ_RAM+2), y
-  
-  CLC 
-  TXA 
-  LSR A 
-  BCC ShiftSpriteRight
-  BCS ShiftSpriteLeft
-ContinueMove: 
-  INX
-  INY 
-  INY 
-  INY 
-  INY 
-  CPY #$20 
-  BNE FlipLoopLeft
-DontUpdateFlag:
-  LDA (SPRATZ_RAM+3)
-  CMP #OPAQUE_X_LEFT
-  BEQ SpratzDontMoveLeft
-  JSR AnimateWalk
-  LDX #LOW(SPRATZ_RAM)
-SpratzMoveLeftLoop: 
-  LDA ($0400+3), x
-  SEC            
-  SBC #$01       
-  STA ($0400+3), x
-  INX
-  INX
-  INX  
-  INX
-  CPX #LOW(SPRATZ_RAM)+32
-  BNE SpratzMoveLeftLoop
-SpratzDontMoveLeft:
-  RTS
-
-
-SpratzMoveRight:
-  LDA #%01000000
-  BIT (SPRATZ_RAM+2)
-  BEQ DontUpdateFlag2
-  LDY #$00
-  LDX #$00
-FlipLoopRight:
-  LDA (SPRATZ_RAM+2), y
-  AND #%10111111
-  STA (SPRATZ_RAM+2), y
-  
-  CLC 
-  TXA 
-  LSR A 
-  BCC ShiftSpriteLeft
-  BCS ShiftSpriteRight
-ContinueMove2: 
-  INX 
-  INY 
-  INY 
-  INY 
-  INY 
-  CPY #$20 
-  BNE FlipLoopRight
-DontUpdateFlag2:
-
-  LDA (SPRATZ_RAM+4+3)
-  CMP #OPAQUE_X_RIGHT
-  BEQ SpratzDontMoveRight
-  JSR AnimateWalk
-  LDX #LOW(SPRATZ_RAM)
-SpratzMoveRightLoop: 
-  LDA ($0400+3), x
-  CLC            
-  ADC #$01       
-  STA ($0400+3), x
-  INX
-  INX
-  INX
-  INX
-  CPX #LOW(SPRATZ_RAM)+32
-  BNE SpratzMoveRightLoop
-SpratzDontMoveRight:
-  RTS
-  
-  
-ShiftSpriteLeft: 
-  SEC
-  LDA (SPRATZ_RAM+3), y
-  SBC #$08
-  STA (SPRATZ_RAM+3), y
-  
-  LDA #%01000000
-  BIT (SPRATZ_RAM+2)
-  BEQ ContinueMove2
-  JMP ContinueMove 
-  
-ShiftSpriteRight: 
-  CLC
-  LDA (SPRATZ_RAM+3), y
-  ADC #$08
-  STA (SPRATZ_RAM+3), y
-
-  LDA #%01000000
-  BIT (SPRATZ_RAM+2)
-  BEQ ContinueMove2
-  JMP ContinueMove 
-  
-
-StartClock: 
-  LDA keyHoldTimeout
-  BEQ StopKeyClock
-  DEC keyHoldTimeout
-StopKeyClock: 
-  LDA frameTimeout
-  BEQ StopFrameClock
-  DEC frameTimeout
-StopFrameClock: 
-  RTS 
+  .include "inc/hero_movement.asm"
   
   .include "inc/animations.asm"
   
@@ -731,10 +615,19 @@ LoadMenuBackground:
 
 
 LoadSprites:
+  LDX #$00
+LoadPillsLoop: 
+  LDA pillsprites, x     
+  STA $0400, x         
+  INX                   
+  CPX #$10              
+  BNE LoadPillsLoop   
+
+
   LDX #$00              ; start at 0
 LoadSpritesLoop:
   LDA sprites, x        ; load data from address (sprites +  x)
-  STA $0400, x          ; store into RAM address ($0400 + x)
+  STA $0410, x          ; store into RAM address ($0400 + x)
   INX                   ; X = X + 1
   CPX #$B0              ; Compare X 
   BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero

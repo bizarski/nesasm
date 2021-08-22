@@ -7,21 +7,21 @@ pointerLo  		.rs 1   ; pointer variables are declared in RAM
 pointerHi  		.rs 1   ; low byte first, high byte immediately after
 
 tmp				.rs 1
+xpos            .rs 1
 
 nextFrame       .rs 1
 frameTimeout    .rs 1
+animationClock  .rs 1
 
 currentSong     .rs 1
 currentHero     .rs 1
 currentHeroBop  .rs 1
   
-gameFlags       .rs 1  ; xxxxxxx1
+gameFlags       .rs 1  ; xxxxxxxx
 soundFlags      .rs 1  ; xxxxx111
-
-keyHoldTimeout  .rs 1  ; frame counter: rolls over every 256 frames
 
 samplePointer   .rs 1
 
 playingSongNumber .rs 1
 
-arrowPosition   .rs 1
+arrowPosition     .rs 1

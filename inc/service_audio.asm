@@ -3,7 +3,7 @@ AS_ClearSound:
 	LDX #$00
 	LDA #$00
 
-	ClearSoundLoop:
+ClearSoundLoop:
 	sta $4000,x
 	inx
 	cpx #$0F
