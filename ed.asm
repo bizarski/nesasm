@@ -200,6 +200,10 @@ PlayerHit:
 PlayerBonus: 
   JSR ResetHeroHitFlag
   JSR IncrementScoreDisplay
+  JSR IncrementScoreDisplay
+  JSR IncrementScoreDisplay
+  JSR IncrementScoreDisplay
+  JSR IncrementScoreDisplay
   jmp EnginePlaying_SkipPills
   RTS 
 
@@ -212,7 +216,7 @@ HideSpritesLoop:
   INX
   INX  
   INX
-  CPX #$C0
+  CPX #$CC
   BNE HideSpritesLoop
 DontHideSprites: 
   RTS 
@@ -250,6 +254,11 @@ ShowCymbals:
   STA ($0400+4), x
   STA ($0400+4*2), x
   STA ($0400+4*3), x
+ShowScore: 
+  LDA #$0D
+  STA SCORE_RAM
+  STA SCORE_RAM+4
+  STA SCORE_RAM+4*2
 ShowInventory:
   LDA #$0D
   STA INVENTORY_RAM
