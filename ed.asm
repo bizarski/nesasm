@@ -163,10 +163,13 @@ EnginePlaying:
   JSR AnimateGuitars
   JSR AnimateCymbals
   
+  LDA playingSongNumber  
+  CMP #$09
+  BNE EnginePlaying_SkipPills
   JSR AnimatePills
   JSR AnimatePills2
   JSR SpratzCheckHit
-  
+EnginePlaying_SkipPills:  
   JSR EnginePlaying_ReactToInput
 
   LDA #MUSIC_INITIALIZED

@@ -115,6 +115,13 @@ SpratzMoveRightLoop:
 SpratzDontMoveRight:
   RTS
   
+  
+SetHitFlag: 
+  LDA gameFlags
+  ORA #HERO_HIT
+  STA gameFlags
+  RTS 
+
 CheckHitSprite: 
   SEC 
   CMP tmp 
@@ -122,16 +129,17 @@ CheckHitSprite:
   ADC #$08
   CMP tmp 
   BCC SpritesNoHit
-  LDA gameFlags
-  ORA #HERO_HIT
-  STA gameFlags
+  JSR SetHitFlag
 SpritesNoHit: 
   RTS 
   
 SpratzCheckHit: 
-  LDA (BLUEPILL_RAM+4)   ; bottom part of pill 
+  LDA (BLUEPILL_RAM+4)    ; bottom part of pill 
+  SEC
   CMP #SPRITE_SPR_Y
-  BNE NoHit
+  BCC NoHit
+  CMP #(SPRITE_SPR_Y+8*3) ; full length of metasprite
+  BCS NoHit
   LDA (BLUEPILL_RAM+3+4)
   STA tmp 
   LDX #$00
