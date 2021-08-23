@@ -184,12 +184,19 @@ EnginePlaying_SkipPills:
   BEQ GoToInitTrack
 
   JSR PLAY_ADDRESS
+  
+  LDA IS_PLAYING_RAM
+  BEQ SongFinished
 
   JMP GameEngineDone
 GoToInitTrack: 
   JMP InitTrack
   RTS 
 
+SongFinished: 
+  JSR PlayingSelectPressed
+  JMP GameEngineDone	
+  RTS
 
 PlayerHit: 
   JSR ResetHeroHitFlag
