@@ -54,6 +54,11 @@ sprites:
   
   .db $F0, $0E, %00000010, $F0	 ; inventory								  
 
+hudstuff: 
+  .db $0D, $C0, %00000010, $E0										  ;B0
+  .db $0D, $C0, %00000010, $E8
+  .db $0D, $C0, %00000010, $F0
+
 pillsprites: 
   .db $F0, $5C, %00000011, $F0	 ; blue pill						  ;00			
   .db $F0, $6C, %00000011, $F0

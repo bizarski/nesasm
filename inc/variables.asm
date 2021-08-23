@@ -17,7 +17,7 @@ currentSong     .rs 1
 currentHero     .rs 1
 currentHeroBop  .rs 1
   
-gameFlags       .rs 1  ; xxxxxxxx
+gameFlags       .rs 1  ; xxxxxxx1
 soundFlags      .rs 1  ; xxxxx111
 
 samplePointer   .rs 1

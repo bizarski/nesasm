@@ -77,7 +77,6 @@ SpratzMoveLeft:
   LDA (SPRATZ_RAM+3)
   CMP #OPAQUE_X_LEFT
   BEQ SpratzDontMoveLeft
-  JSR AnimateWalk
   LDX #LOW(SPRATZ_RAM)
 SpratzMoveLeftLoop: 
   LDA ($0400+3), x
@@ -120,7 +119,7 @@ SetHitFlag:
   LDA gameFlags
   ORA #HERO_HIT
   STA gameFlags
-  RTS 
+  RTS
 
 CheckHitSprite: 
   SEC 
@@ -153,4 +152,60 @@ CheckHitLoop:
   CPX #$10
   BNE CheckHitLoop
 NoHit: 
+  RTS
+
+SpratzCheckBonus: 
+  LDA (REDPILL_RAM+4)    ; bottom part of pill 
+  SEC
+  CMP #SPRITE_SPR_Y
+  BCC NoBonus
+  CMP #(SPRITE_SPR_Y+8*3) ; full length of metasprite
+  BCS NoBonus
+  LDA (REDPILL_RAM+3+4)
+  STA tmp 
+  LDX #$00
+CheckBonusLoop: 
+  LDA (SPRATZ_RAM+3), x
+  JSR CheckHitSprite
+  INX
+  INX
+  INX
+  INX
+  CPX #$10
+  BNE CheckBonusLoop
+  LDA #HERO_HIT 
+  BIT gameFlags
+  BEQ NoBonus
+  LDA #$F0
+  STA (REDPILL_RAM+0)
+  STA (REDPILL_RAM+4)
+NoBonus: 
+  RTS
+
+IncrementScoreDisplay:
+  INC (SCORE_RAM+4*2+1)		; increment 3rd digit tile number
+  LDA (SCORE_RAM+4*2+1)
+  CMP #($C9+$01)							; check if 3rd digit went past 9
+  BNE IncrementScoreDisplayDone			; if not, we're done
+  
+  LDA #$C0
+  STA (SCORE_RAM+4*2+1)		; if so, reset 3rd digit to 0...
+  INC (SCORE_RAM+4+1)		; and increment 2nd digit tile number
+  LDA (SCORE_RAM+4+1)
+  CMP #($C9+$01)							; check if 2nd digit went past 9
+  BNE IncrementScoreDisplayDone			; if not, we're done
+  
+  LDA #$C0
+  STA (SCORE_RAM+4+1)		; if so, reset 2nd digit to 0...
+  INC (SCORE_RAM+1)		; and increment 1st digit tile number
+  LDA (SCORE_RAM+1)
+  CMP #($C9+$01)							; check if 1st digit went past 9
+  BNE IncrementScoreDisplayDone			; if not, we're done
+  
+  LDA #$C0								; if so (unlikely), reset all digits to 0, reset playerscore, and store 999 in highscore
+  STA (SCORE_RAM+4*2+1)
+  STA (SCORE_RAM+4+1)
+  STA (SCORE_RAM+1)
+
+IncrementScoreDisplayDone: 
   RTS

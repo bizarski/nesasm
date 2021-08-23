@@ -169,6 +169,13 @@ EnginePlaying:
   JSR AnimatePills
   JSR AnimatePills2
   JSR SpratzCheckHit
+  LDA #HERO_HIT 
+  BIT gameFlags
+  BNE PlayerHit
+  JSR SpratzCheckBonus
+  LDA #HERO_HIT 
+  BIT gameFlags
+  BNE PlayerBonus
 EnginePlaying_SkipPills:  
   JSR EnginePlaying_ReactToInput
 
@@ -183,6 +190,18 @@ GoToInitTrack:
   JMP InitTrack
   RTS 
 
+
+PlayerHit: 
+  JSR ResetHeroHitFlag
+  JSR PlayingSelectPressed
+  JMP GameEngineDone	
+  RTS 
+
+PlayerBonus: 
+  JSR ResetHeroHitFlag
+  JSR IncrementScoreDisplay
+  jmp EnginePlaying_SkipPills
+  RTS 
 
 HideAllSprites: 
   LDX #$00
@@ -351,9 +370,6 @@ EngineTitle_ArrowMoveDown:
   RTS 
 
 EnginePlaying_ReactToInput: 
-  LDA #HERO_HIT
-  BIT gameFlags
-  BNE EnginePlaying_PlayingSelectPressed
   LDA buttons1 
   AND #BTN_LEFT 
   BNE EnginePlaying_SpratzMoveLeft
@@ -478,13 +494,18 @@ StoreSamplePointer:
 SkipUpdateSample: 
   RTS
 
-TitleStartPressed: 
-  JSR SpratzDirRight
-
+ResetHeroHitFlag: 
   LDA #HERO_HIT
   EOR #%11111111
   AND gameFlags
   STA gameFlags
+  
+  RTS 
+
+TitleStartPressed: 
+  JSR SpratzDirRight
+
+  JSR ResetHeroHitFlag
   
   LDA #$F0
   STA ARROW_RAM
@@ -642,7 +663,7 @@ LoadSpritesLoop:
   LDA sprites, x        ; load data from address (sprites +  x)
   STA $0410, x          ; store into RAM address ($0400 + x)
   INX                   ; X = X + 1
-  CPX #$B0              ; Compare X 
+  CPX #$BC              ; Compare X 
   BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
                         ; if compare was equal to 32, keep going down
   RTS 
