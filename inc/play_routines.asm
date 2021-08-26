@@ -137,9 +137,9 @@ PlayTrack9:
 PlayTrack10: 
   LDA #$0A
   STA playingSongNumber
-  LDA heroSparx+0
+  LDA heroFreddy+0
   STA currentHero
-  LDA heroSparx+1
+  LDA heroFreddy+1
   STA currentHeroBop
   JSR LoadPalette1
   JSR LoadSong10Background

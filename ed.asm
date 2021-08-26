@@ -502,11 +502,12 @@ UpdateSamplePointer:
   BNE StoreSamplePointer
   LDA #$00
 StoreSamplePointer:
-  STA samplePointer
-  
+  STA samplePointer  
   LDA soundFlags
   EOR #SAMPLE_CHANGED
   STA soundFlags
+  LDA #$0A
+  JSR PlaySample
 SkipUpdateSample: 
   RTS
 
@@ -738,6 +739,8 @@ heroZappa:
   .byte $60, $62
 heroIvo: 
   .byte $40, $42
+heroFreddy: 
+  .byte $68, $6A
 
 ;;;;;;;;;;;;;;;;
 
