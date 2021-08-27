@@ -121,17 +121,42 @@ SetHitFlag:
   STA gameFlags
   RTS
 
-CheckHitSprite: 
+CheckHitSpriteFlipped:
   SEC 
+  CLC 
+  SBC #$08
   CMP tmp 
   BCS SpritesNoHit
-  ADC #$08
+  ADC #$18
   CMP tmp 
   BCC SpritesNoHit
   JSR SetHitFlag
 SpritesNoHit: 
   RTS 
   
+CheckHitSprite: 
+  SEC 
+  CLC
+  ADC #$08
+  CMP tmp 
+  BCC SpritesNoHit2
+  SBC #$18
+  CMP tmp 
+  BCS SpritesNoHit2
+  JSR SetHitFlag
+SpritesNoHit2: 
+  RTS 
+ 
+CheckHitHeroFlipped: 
+  LDA (SPRATZ_RAM+3)
+  JSR CheckHitSprite
+  RTS
+
+CheckHitHero: 
+  LDA (SPRATZ_RAM+3)
+  JSR CheckHitSpriteFlipped
+  RTS
+
 SpratzCheckHit: 
   LDA (BLUEPILL_RAM+4)    ; bottom part of pill 
   SEC
@@ -141,18 +166,12 @@ SpratzCheckHit:
   BCS NoHit
   LDA (BLUEPILL_RAM+3+4)
   STA tmp 
-  LDX #$00
-CheckHitLoop: 
-  LDA (SPRATZ_RAM+3), x
-  JSR CheckHitSprite
-  INX
-  INX
-  INX
-  INX
-  CPX #$10
-  BNE CheckHitLoop
+  LDA #%01000000
+  BIT (SPRATZ_RAM+2)
+  BEQ CheckHitHero 
+  BNE CheckHitHeroFlipped
 NoHit: 
-  RTS
+  RTS 
 
 SpratzCheckBonus: 
   LDA (REDPILL_RAM+4)    ; bottom part of pill 
@@ -163,16 +182,11 @@ SpratzCheckBonus:
   BCS NoBonus
   LDA (REDPILL_RAM+3+4)
   STA tmp 
-  LDX #$00
-CheckBonusLoop: 
-  LDA (SPRATZ_RAM+3), x
-  JSR CheckHitSprite
-  INX
-  INX
-  INX
-  INX
-  CPX #$10
-  BNE CheckBonusLoop
+  LDA #%01000000
+  BIT (SPRATZ_RAM+2)
+  BEQ b_CheckHitHero 
+  BNE b_CheckHitHeroFlipped
+HidePill:
   LDA #HERO_HIT 
   BIT gameFlags
   BEQ NoBonus
@@ -180,6 +194,16 @@ CheckBonusLoop:
   STA (REDPILL_RAM+0)
   STA (REDPILL_RAM+4)
 NoBonus: 
+  RTS
+
+b_CheckHitHero:
+  JSR CheckHitHero
+  JMP HidePill
+  RTS
+  
+b_CheckHitHeroFlipped:
+  JSR CheckHitHeroFlipped
+  JMP HidePill
   RTS
 
 IncrementScoreDisplay:
