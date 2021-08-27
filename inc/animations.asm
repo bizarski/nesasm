@@ -32,8 +32,20 @@ DontChangeFrame:
   RTS 
 
 
+AnimateWoo: 
+  LDX nextFrame
+  LDA animWoo, x
+  STA (WOO_RAM+2)     ; attributes
+  STA (WOO_RAM+2+4)
+  STA (WOO_RAM+2+4*2)
+  STA (WOO_RAM+2+4*3)
+  DEC (WOO_RAM)
+  DEC (WOO_RAM+4)
+  DEC (WOO_RAM+4*2)
+  DEC (WOO_RAM+4*3)
+  RTS 
+
 AnimateWalk: 
-  LDY #$00
   LDX nextFrame
   LDA animLegsLeft, x
   STA (SPRATZ_RAM+4*6+1)
@@ -237,3 +249,6 @@ animLegsLeft:
 
 animLegsRight: 
   .db $31, $13, $31, $23 
+  
+animWoo: 
+  .db %00000010, $00000000, %00000010, %00000001

@@ -20,6 +20,8 @@ currentHeroBop  .rs 1
 gameFlags       .rs 1  ; xxxxxxx1
 soundFlags      .rs 1  ; xxxxx111
 
+playerScore     .rs 2
+
 samplePointer   .rs 1
 
 playingSongNumber .rs 1

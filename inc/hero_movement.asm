@@ -77,6 +77,7 @@ SpratzMoveLeft:
   LDA (SPRATZ_RAM+3)
   CMP #OPAQUE_X_LEFT
   BEQ SpratzDontMoveLeft
+  JSR AnimateWalk
   LDX #LOW(SPRATZ_RAM)
 SpratzMoveLeftLoop: 
   LDA ($0400+3), x
@@ -232,4 +233,97 @@ IncrementScoreDisplay:
   STA (SCORE_RAM+1)
 
 IncrementScoreDisplayDone: 
+  RTS
+  
+
+SayWoo: 
+  LDA #$0D
+  STA WOO_RAM
+  STA WOO_RAM+4
+  STA WOO_RAM+4*2
+  STA WOO_RAM+4*3
+  JSR IncrementScoreDisplay
+  RTS 
+
+PlaySampleA: 
+  CLC 
+  
+  LDA WOO_RAM
+  CMP #$F0 
+  BNE DontSayWoo
+  
+  LDA PAUSE_RAM 
+  CMP #$FF
+  BEQ DontSayWoo 
+  
+  LDA NOISE_RAM
+  CMP #$13
+  BCS DontSayWoo
+
+  JSR SayWoo
+	
+DontSayWoo: 
+  LDA samplePointer
+  JSR PlaySample
+  RTS 
+
+PlaySampleB:
+  CLC
+
+  LDA WOO_RAM
+  CMP #$F0 
+  BNE DontSayWoo2
+  
+  LDA PAUSE_RAM 
+  CMP #$FF
+  BEQ DontSayWoo2 
+  
+  LDA NOISE_RAM
+  CMP #$13
+  BCC DontSayWoo2
+  CMP #$19
+  BCS DontSayWoo2
+  JSR SayWoo
+DontSayWoo2:
+  LDA samplePointer
+  CLC
+  ADC #$01
+  JSR PlaySample
+  RTS 
+
+
+SpritesBop: 
+  LDX #LOW(SPRATZ_RAM)
+  LDA currentHeroBop
+  JSR ChangeHeroTiles
+  LDA #$29
+  STA (SPRATZ_RAM+1+4*5)
+
+  LDA #SAMPLE_CHANGED
+  BIT soundFlags
+  BNE SkipUpdateSample  
+UpdateInventory: 
+  LDA (INVENTORY_RAM+1)
+  CLC
+  ADC #$10 
+  CMP #$5E
+  BNE StoreInventoryChange
+  LDA #$0E
+StoreInventoryChange: 
+  STA (INVENTORY_RAM+1)
+UpdateSamplePointer:
+  LDA samplePointer
+  CLC 
+  ADC #$02
+  CMP #$0A
+  BNE StoreSamplePointer
+  LDA #$00
+StoreSamplePointer:
+  STA samplePointer  
+  LDA soundFlags
+  EOR #SAMPLE_CHANGED
+  STA soundFlags
+  LDA #$0A
+  JSR PlaySample
+SkipUpdateSample: 
   RTS

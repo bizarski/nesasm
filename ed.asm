@@ -177,7 +177,17 @@ EnginePlaying:
   BIT gameFlags
   BNE PlayerBonus
 EnginePlaying_SkipPills:  
+
+  LDA WOO_RAM
+  CMP #$F0
+  BEQ SkipAnimateWoo
+  JSR AnimateWoo
+SkipAnimateWoo: 
+
   JSR EnginePlaying_ReactToInput
+  
+  LDA playingSongNumber
+  BEQ SkipMusic
 
   LDA #MUSIC_INITIALIZED
   BIT soundFlags
@@ -188,6 +198,7 @@ EnginePlaying_SkipPills:
   LDA IS_PLAYING_RAM
   BEQ SongFinished
 
+SkipMusic:
   JMP GameEngineDone
 GoToInitTrack: 
   JMP InitTrack
@@ -211,6 +222,7 @@ PlayerBonus:
   JSR IncrementScoreDisplay
   JSR IncrementScoreDisplay
   JSR IncrementScoreDisplay
+  JSR SayWoo
   jmp EnginePlaying_SkipPills
   RTS 
 
@@ -223,7 +235,7 @@ HideSpritesLoop:
   INX
   INX  
   INX
-  CPX #$CC
+  CPX #$DC
   BNE HideSpritesLoop
 DontHideSprites: 
   RTS 
@@ -433,25 +445,20 @@ EnginePlaying_MoveGuiness:
   
   LDA buttons1 
   AND #BTN_A
-  BNE PlaySampleA
+  BNE e_PlaySampleA
   LDA buttons1 
   AND #BTN_B
-  BNE PlaySampleB
+  BNE e_PlaySampleB
 exitMoveGuiness:
   RTS 
 
-
-PlaySampleA: 
-  LDA samplePointer
-  JSR PlaySample
-  RTS 
-PlaySampleB: 
-  LDA samplePointer
-  CLC
-  ADC #$01
-  JSR PlaySample
+e_PlaySampleA: 
+  JMP PlaySampleA
   RTS 
 
+e_PlaySampleB: 
+  JMP PlaySampleB
+  RTS
 
 EnginePlaying_ResetTriggers: 
 ResetHead: 
@@ -475,41 +482,7 @@ ResetSamples:
   
   RTS
 
-SpritesBop: 
-  LDX #LOW(SPRATZ_RAM)
-  LDA currentHeroBop
-  JSR ChangeHeroTiles
-  LDA #$29
-  STA (SPRATZ_RAM+1+4*5)
 
-  LDA #SAMPLE_CHANGED
-  BIT soundFlags
-  BNE SkipUpdateSample  
-UpdateInventory: 
-  LDA (INVENTORY_RAM+1)
-  CLC
-  ADC #$10 
-  CMP #$5E
-  BNE StoreInventoryChange
-  LDA #$0E
-StoreInventoryChange: 
-  STA (INVENTORY_RAM+1)
-UpdateSamplePointer:
-  LDA samplePointer
-  CLC 
-  ADC #$02
-  CMP #$0A
-  BNE StoreSamplePointer
-  LDA #$00
-StoreSamplePointer:
-  STA samplePointer  
-  LDA soundFlags
-  EOR #SAMPLE_CHANGED
-  STA soundFlags
-  LDA #$0A
-  JSR PlaySample
-SkipUpdateSample: 
-  RTS
 
 ResetHeroHitFlag: 
   LDA #HERO_HIT
@@ -564,9 +537,7 @@ FinishStartPressed:
 
   .include "inc/play_routines.asm"
 
-PlayingSelectPressed:
-  JSR AS_StopMusic
-  
+PlayingSelectPressed:  
   JSR ResetPPU
   JSR HideAllSprites
   
@@ -575,6 +546,8 @@ PlayingSelectPressed:
   
   LDA currentSong 
   STA ARROW_RAM
+  
+  JSR AS_StopMusic
   
   RTS 
 
@@ -680,7 +653,7 @@ LoadSpritesLoop:
   LDA sprites, x        ; load data from address (sprites +  x)
   STA $0410, x          ; store into RAM address ($0400 + x)
   INX                   ; X = X + 1
-  CPX #$BC              ; Compare X 
+  CPX #$CC              ; Compare X 
   BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
                         ; if compare was equal to 32, keep going down
   RTS 
