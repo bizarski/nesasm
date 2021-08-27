@@ -21,6 +21,9 @@ gameFlags       .rs 1  ; xxxxxxx1
 soundFlags      .rs 1  ; xxxxx111
 
 playerScore     .rs 2
+highScore       .rs 2
+scoreLo         .rs 1
+scoreHi			.rs 1
 
 samplePointer   .rs 1
 

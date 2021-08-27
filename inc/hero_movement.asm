@@ -233,6 +233,14 @@ IncrementScoreDisplay:
   STA (SCORE_RAM+1)
 
 IncrementScoreDisplayDone: 
+
+  INC playerScore+1 		; increase score by 1
+  LDA playerScore+1
+  CMP #$00					; check if LSB has wrapped to 0
+  BNE IncrementPlayerScoreDone
+  INC playerScore+0			; if so, increment MSB
+IncrementPlayerScoreDone: 
+
   RTS
   
 

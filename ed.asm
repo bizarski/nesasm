@@ -85,7 +85,7 @@ vblankwait2:      ; Second wait for vblank, PPU is ready after this
   BIT $2002
   BPL vblankwait2
 
-  JSR LoadPalette1
+  JSR LoadPalette9
 				
   JSR LoadMenuBackground
   JSR LoadSprites  
@@ -96,6 +96,10 @@ vblankwait2:      ; Second wait for vblank, PPU is ready after this
   STA gameFlags
   STA soundFlags
   STA xpos
+  STA playerScore+0
+  STA playerScore+1					; reset score
+  STA highScore+0
+  STA highScore+1					; reset score
   
   LDA #TRACK_1
   STA currentSong
@@ -154,6 +158,7 @@ GameEngineDone:
 
 
 EngineTitle:
+  JSR DisplayHighScore
   JSR EngineTitle_ReactToInput
   
   JMP GameEngineDone
@@ -220,8 +225,8 @@ PlayerBonus:
   JSR IncrementScoreDisplay
   JSR IncrementScoreDisplay
   JSR IncrementScoreDisplay
-  JSR IncrementScoreDisplay
-  JSR IncrementScoreDisplay
+  JSR IncrementScoreDisplay  
+  
   JSR SayWoo
   jmp EnginePlaying_SkipPills
   RTS 
@@ -276,8 +281,14 @@ ShowCymbals:
 ShowScore: 
   LDA #$0D
   STA SCORE_RAM
-  STA SCORE_RAM+4
-  STA SCORE_RAM+4*2
+  STA (SCORE_RAM+4)
+  STA (SCORE_RAM+4*2)
+  LDA #$E0
+  STA (SCORE_RAM+3)
+  LDA #$E8
+  STA (SCORE_RAM+3+4)
+  LDA #$F0
+  STA (SCORE_RAM+3+4*2)
 ShowInventory:
   LDA #$0D
   STA INVENTORY_RAM
@@ -500,6 +511,7 @@ TitleStartPressed:
   LDA #$F0
   STA ARROW_RAM
   
+  JSR ResetPlayerScore
   JSR ShowSongSprites
   JSR ResetPPU
 
@@ -541,14 +553,88 @@ PlayingSelectPressed:
   JSR ResetPPU
   JSR HideAllSprites
   
-  JSR LoadPalette1
+  JSR LoadPalette9
   JSR LoadMenuBackground  
   
   LDA currentSong 
   STA ARROW_RAM
   
+   ; Check and update highscore
+  LDA highScore+0
+  CMP playerScore+0
+  BCC HighScoreUpdate		; if highscore MSB < playerscore MSB, update highscore
+  BNE HighScoreEnd			; but, if highscore MSB > playerscore MSB, skip update
+							; (past this point, we know highscore MSB <= playerscore MSB)
+  LDA highScore+1
+  CMP playerScore+1
+  BCC HighScoreUpdate		; else if highscore LSB < playerscore LSB, update highscore
+  JMP HighScoreEnd			; else, skip update
+  
+HighScoreUpdate:
+  LDA playerScore+0
+  STA highScore+0
+  LDA playerScore+1
+  STA highScore+1
+  
+HighScoreEnd:
+  
+  LDA highScore+0
+  STA scoreLo
+  LDA highScore+1
+  STA scoreHi
+  
+  LDA #$C0
+  STA (SCORE_RAM+1)
+  STA (SCORE_RAM+1+4)
+  STA (SCORE_RAM+1+4*2)
+  
   JSR AS_StopMusic
   
+  RTS 
+
+DisplayHighScore:
+
+ 
+  LDA #$BE 
+  STA SCORE_RAM
+  STA (SCORE_RAM+4)
+  STA (SCORE_RAM+4*2)
+  LDA #$92
+  STA (SCORE_RAM+3)
+  LDA #$9A
+  STA (SCORE_RAM+3+4)
+  LDA #$A2
+  STA (SCORE_RAM+3+4*2)
+ 
+  LDA scoreHi
+  CMP #$00
+  BNE ScoreLoopSmall
+  LDA scoreLo
+  CMP #$00
+  BEQ DisplayHighScoreDone
+  CMP #$FF 
+  BEQ DisplayHighScoreDone
+ScoreLoopSmall:
+  JSR IncrementScoreDisplay
+  DEC scoreHi
+  LDA scoreHi
+  CMP #$00
+  BNE ScoreLoopSmall
+  DEC (scoreLo) 
+  LDA (scoreLo) 
+  CMP #$FF 
+  BNE ScoreLoopSmall
+DisplayHighScoreDone:   
+  RTS 
+
+ResetPlayerScore:
+  LDA #$C0
+  STA (SCORE_RAM+1)
+  STA (SCORE_RAM+1+4)
+  STA (SCORE_RAM+1+4*2)
+  LDA #$00
+  STA playerScore+0
+  STA playerScore+1
   RTS 
 
 ResetPPU: 
