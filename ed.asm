@@ -483,12 +483,22 @@ EnginePlaying_ReactToInput:
   RTS
 
 EnginePlaying_SpratzMoveLeft: 
+  LDA playingSongNumber
+  CMP #$0B
+  BEQ FlipLeftToRight
   JMP SpratzMoveLeft
+FlipLeftToRight: 
+  JMP SpratzMoveRight
   RTS 
  
 
 EnginePlaying_SpratzMoveRight: 
+  LDA playingSongNumber
+  CMP #$0B
+  BEQ FlipRightToLeft
   JMP SpratzMoveRight
+FlipRightToLeft: 
+  JMP SpratzMoveLeft
   RTS 
   
 EnginePlaying_SpritesBop: 
