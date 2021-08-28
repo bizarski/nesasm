@@ -147,9 +147,14 @@ GameEngine:
   LDA playingSongNumber
   CMP #$00
   BNE GameEngine_NotTitle	; need to use JMP here because relative addressing used by BEQ goes out of range
+  LDA #HERO_HIT 
+  BIT gameFlags
+  BNE GameEngine_GameOver
   JMP EngineTitle			; game is displaying title screen
 GameEngine_NotTitle:
   JMP EnginePlaying  
+GameEngine_GameOver: 
+  JMP EngineGameOver
 GameEngineDone: 
   RTI             ; return from interrupt
  
@@ -163,6 +168,20 @@ EngineTitle:
   
   JMP GameEngineDone
 
+EngineGameOver: 
+  LDA buttons1 
+  AND #BTN_SELECT
+  BNE EngineGameOver_Reset
+  LDA buttons1 
+  AND #BTN_START
+  BNE EngineGameOver_Reset
+  JMP GameEngineDone
+  
+EngineGameOver_Reset: 
+  JSR ResetHeroHitFlag  
+  JSR PlayingSelectPressed
+  JMP GameEngineDone
+  
 EnginePlaying:   
   JSR AdvanceAnimationFrame 
   JSR AnimateGuitars
@@ -223,9 +242,20 @@ SongFinished:
   RTS
 
 PlayerHit: 
-  JSR ResetHeroHitFlag
-  JSR PlayingSelectPressed
-  JMP GameEngineDone	
+  LDA heroSparx+2
+  STA (SPRATZ_RAM+1+4*2)
+  CLC 
+  ADC #$01
+  STA (SPRATZ_RAM+1+4*3)
+  ADC #$01
+  STA (SPRATZ_RAM+1+4*4)
+  ADC #$01
+  STA (SPRATZ_RAM+1+4*5)
+  
+  JSR EnginePlaying_StopMusic
+  JSR Bloop
+  JMP GameEngineDone
+
   RTS 
 
 PlayerBonus: 
@@ -557,15 +587,12 @@ FinishStartPressed:
 
   .include "inc/play_routines.asm"
 
-PlayingSelectPressed:  
+PlayingSelectPressed:
   JSR ResetPPU
   JSR HideAllSprites
   
   JSR LoadPalette9
   JSR LoadMenuBackground  
-  
-  LDA currentSong 
-  STA ARROW_RAM
   
    ; Check and update highscore
   LDA highScore+0
@@ -596,13 +623,17 @@ HighScoreEnd:
   STA (SCORE_RAM+1+4)
   STA (SCORE_RAM+1+4*2)
   
+  
+  LDA currentSong 
+  STA ARROW_RAM
+  
+EnginePlaying_StopMusic: 
+
   JSR AS_StopMusic
   
   RTS 
 
-DisplayHighScore:
-
- 
+DisplayHighScore: 
   LDA #$BE 
   STA SCORE_RAM
   STA (SCORE_RAM+4)
@@ -715,6 +746,24 @@ Bleep:
   RTS
 
 
+Bloop:
+  ; enable channel
+  lda #%00000001
+  sta $4015
+  ; square 1
+  LDA #%10000111
+  STA $4000
+  ; sweep   
+  LDA #%11110000
+  STA $4001
+  LDA #%10011001
+  ; timer
+  STA $4002
+  ; length counter and timer
+  LDA #%00001000
+  STA $4003
+  RTS
+
 LoadMenuBackground:
   LDA $2002             ; read PPU status to reset the high/low latch
   LDA #$20
@@ -801,7 +850,7 @@ banktable:              ; Write to this table to switch banks.
 trackNumberInBankTable:
   .byte $00, $01, $02, $00, $01, $00, $01, $00, $01, $00, $00, $01, $00
 heroSparx: 
-  .byte $00, $08
+  .byte $00, $08, $7C
 heroZappa: 
   .byte $60, $62
 heroIvo: 
