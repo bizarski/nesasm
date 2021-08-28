@@ -133,6 +133,51 @@ CymbalsChangeFrame:
   STA (CYMBALS_RAM+1+4*3)
   RTS 
  
+ 
+  
+AnimateUFO: 
+  LDA (UFO_RAM+3)
+  CMP #$FC
+  BCC SkipDelaySpawn
+
+  LDA #SAMPLE_PLAYED
+  BIT soundFlags
+  BEQ ResetUFO
+  
+  LDA samplePointer
+  CMP #$04
+  BNE ResetUFO
+  
+  LDA PAUSE_RAM 
+  CMP #$FF
+  BEQ ResetUFO 
+  
+  LDA NOISE_RAM
+  CMP #$13
+  BCC ResetUFO
+  CMP #$19
+  BCS ResetUFO
+  
+  JMP SkipDelaySpawn
+  
+ResetUFO: 
+  LDA #$F0 
+  STA (UFO_RAM)
+  STA (UFO_RAM+4)
+  JMP SkipUFO
+SkipDelaySpawn: 
+  LDA #$25 
+  STA (UFO_RAM)
+  STA (UFO_RAM+4)
+  INC (UFO_RAM+3)
+  INC (UFO_RAM+3)
+  INC (UFO_RAM+4+3)
+  INC (UFO_RAM+4+3)
+SkipUFO:
+  RTS 
+  
+  
+ 
 DelaySpawn1:
   LDA #$F0
   STA (BLUEPILL_RAM+0)

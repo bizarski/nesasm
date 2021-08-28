@@ -169,6 +169,14 @@ EnginePlaying:
   JSR AnimateCymbals
   
   LDA playingSongNumber  
+  CMP #$07
+  BNE EnginePlaying_SkipUFO
+  
+  JSR AnimateUFO
+  
+EnginePlaying_SkipUFO:
+  
+  LDA playingSongNumber  
   CMP #$09
   BNE EnginePlaying_SkipPills
   JSR AnimatePills
@@ -240,7 +248,7 @@ HideSpritesLoop:
   INX
   INX  
   INX
-  CPX #$DC
+  CPX #$E4
   BNE HideSpritesLoop
 DontHideSprites: 
   RTS 
@@ -739,7 +747,7 @@ LoadSpritesLoop:
   LDA sprites, x        ; load data from address (sprites +  x)
   STA $0410, x          ; store into RAM address ($0400 + x)
   INX                   ; X = X + 1
-  CPX #$CC              ; Compare X 
+  CPX #$D4              ; Compare X 
   BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
                         ; if compare was equal to 32, keep going down
   RTS 
