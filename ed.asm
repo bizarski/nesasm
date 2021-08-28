@@ -188,6 +188,18 @@ EnginePlaying:
   JSR AnimateCymbals
   
   LDA playingSongNumber  
+  CMP #$04
+  BNE EnginePlaying_SkipCoins
+  
+  JSR AnimateCoins
+  JSR SpratzCheckBonus2
+  LDA #HERO_HIT 
+  BIT gameFlags
+  BNE PlayerBonus
+  
+EnginePlaying_SkipCoins: 
+
+  LDA playingSongNumber  
   CMP #$07
   BNE EnginePlaying_SkipUFO
   
@@ -278,7 +290,7 @@ HideSpritesLoop:
   INX
   INX  
   INX
-  CPX #$E4
+  CPX #$E8
   BNE HideSpritesLoop
 DontHideSprites: 
   RTS 
@@ -787,14 +799,14 @@ LoadPillsLoop:
   LDA pillsprites, x     
   STA $0400, x         
   INX                   
-  CPX #$10              
+  CPX #$14             
   BNE LoadPillsLoop   
 
 
   LDX #$00              ; start at 0
 LoadSpritesLoop:
   LDA sprites, x        ; load data from address (sprites +  x)
-  STA $0410, x          ; store into RAM address ($0400 + x)
+  STA $0414, x          ; store into RAM address ($0400 + x)
   INX                   ; X = X + 1
   CPX #$D4              ; Compare X 
   BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero

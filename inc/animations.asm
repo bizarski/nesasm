@@ -178,7 +178,7 @@ SkipUFO:
   
   
  
-DelaySpawn1:
+DelaySpawnBluePill:
   LDA #$F0
   STA (BLUEPILL_RAM+0)
   STA (BLUEPILL_RAM+4)
@@ -225,9 +225,9 @@ SkipFall:
   RTS
   
 b_DelaySpawn:
-  JMP DelaySpawn1
+  JMP DelaySpawnBluePill
   
-DelaySpawn2: 
+DelaySpawnRedPill: 
   LDA #$F0
   STA (REDPILL_RAM+0)
   STA (REDPILL_RAM+4)
@@ -235,9 +235,9 @@ DelaySpawn2:
   SEC
   CMP #$F0 
   BCS DontDelay2
-  JMP SkipFall2
+  JMP SkipFallRedPill
   
-InitializeXPosition2:     
+InitializeXPositionRed:     
   LDA (BLUEPILL_RAM+3)
   CMP xpos 
   BEQ r_SkipFall
@@ -246,13 +246,14 @@ InitializeXPosition2:
   STA (REDPILL_RAM+3+4)
   JMP r_PillMove
 
-InitializeYPosition2:     
+InitializeYPositionRed:     
   LDA (BLUEPILL_RAM+0)
   CMP #($44 - $10)
   BCC continue_inity2
   CMP #($44 + $10)
   BCS continue_inity2
-  JMP SkipFall2
+  JMP SkipFallRedPill
+  
 continue_inity2:
   LDA #$44
   STA (REDPILL_RAM+0)
@@ -260,7 +261,7 @@ continue_inity2:
   JMP r_PillInitX
 
 r_SkipFall: 
-  JMP SkipFall2
+  JMP SkipFallRedPill
 
 AnimatePills2: 
   LDA REDPILL_RAM
@@ -271,11 +272,11 @@ AnimatePills2:
 DontDelay2:
   LDA REDPILL_RAM
   CMP #$F0
-  BEQ InitializeYPosition2
+  BEQ InitializeYPositionRed
 r_PillInitX:
   LDA REDPILL_RAM
   CMP #$44
-  BEQ InitializeXPosition2
+  BEQ InitializeXPositionRed
 r_PillMove:
   LDA REDPILL_RAM
   CLC
@@ -283,11 +284,64 @@ r_PillMove:
   STA REDPILL_RAM
   ADC #$08
   STA (REDPILL_RAM+4)
-SkipFall2:
+SkipFallRedPill:
   RTS
   
 r_DelaySpawn:
-  JMP DelaySpawn2
+  JMP DelaySpawnRedPill
+  
+DelaySpawnCoin: 
+  LDA #$F0
+  STA (COIN_RAM+0)
+  LDA (KICK_RAM)
+  SEC
+  CMP #$C0 
+  BCS DontDelayCoin
+  JMP SkipFallCoin
+  
+InitializeXPositionCoin:     
+  LDA xpos
+  STA (COIN_RAM+3)
+  JMP c_CoinMove
+
+InitializeYPositionCoin:     
+  LDA #$44
+  STA (COIN_RAM+0)
+  JMP c_CoinInitX
+
+c_SkipFall: 
+  JMP SkipFallCoin
+
+AnimateCoins: 
+  LDA COIN_RAM
+  CMP #$C0
+  BEQ c_DelaySpawn
+  CMP #$F0
+  BEQ c_DelaySpawn
+DontDelayCoin:
+  LDA COIN_RAM
+  CMP #$F0
+  BEQ InitializeYPositionCoin
+c_CoinInitX:
+  LDA COIN_RAM
+  CMP #$44
+  BEQ InitializeXPositionCoin
+c_CoinMove:
+
+  LDX nextFrame
+  LDA animCoins, x
+  STA (COIN_RAM+1)
+
+  INC COIN_RAM
+SkipFallCoin:
+
+  RTS
+  
+c_DelaySpawn: 
+  JMP DelaySpawnCoin
+
+animCoins: 
+  .db $5E, $6E, $5E, $6E
   
 animLegsLeft: 
   .db $30, $12, $30, $22

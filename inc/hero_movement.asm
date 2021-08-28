@@ -206,6 +206,38 @@ b_CheckHitHeroFlipped:
   JSR CheckHitHeroFlipped
   JMP HidePill
   RTS
+  
+SpratzCheckBonus2: 
+  LDA (COIN_RAM)    ; bottom part of pill 
+  SEC
+  CMP #SPRITE_SPR_Y
+  BCC NoBonus2
+  CMP #(SPRITE_SPR_Y+8*3) ; full length of metasprite
+  BCS NoBonus2
+  LDA (COIN_RAM+3)
+  STA tmp 
+  LDA #%01000000
+  BIT (SPRATZ_RAM+2)
+  BEQ c_CheckHitHero 
+  BNE c_CheckHitHeroFlipped
+HideCoin:
+  LDA #HERO_HIT 
+  BIT gameFlags
+  BEQ NoBonus2
+  LDA #$F0
+  STA (COIN_RAM+0)
+NoBonus2: 
+  RTS
+
+c_CheckHitHero:
+  JSR CheckHitHero
+  JMP HideCoin
+  RTS
+  
+c_CheckHitHeroFlipped:
+  JSR CheckHitHeroFlipped
+  JMP HideCoin
+  RTS
 
 IncrementScoreDisplay:
   INC (SCORE_RAM+4*2+1)		; increment 3rd digit tile number
