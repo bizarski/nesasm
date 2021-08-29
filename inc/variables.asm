@@ -8,6 +8,7 @@ pointerHi  		.rs 1   ; low byte first, high byte immediately after
 
 tmp				.rs 1
 xpos            .rs 1
+counter         .rs 1
 
 nextFrame       .rs 1
 frameTimeout    .rs 1

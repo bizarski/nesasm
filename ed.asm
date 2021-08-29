@@ -126,6 +126,7 @@ AdvanceXPos:
   CMP #$B8
   BCC DontResetXPos
   LDA #$40
+  INC counter
 DontResetXPos: 
   STA xpos
   JMP Forever     ;jump back to Forever, infinite loop

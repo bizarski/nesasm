@@ -108,22 +108,24 @@ DontPlaySample:
 	
 Glitch1: 
     LDA xpos  
-    LDX xpos 	
-    STA $0400, x
-	STA ($0400+4), x
-	STA $0200, x 
+	ADC NOISE_RAM
+	SBC samplePointer
+	TAX
+	LDA xpos 
+	ADC KICK_RAM
+	LDX animationClock
+	STA $027C, x 
 	
-	LDA xpos  
-	STA $2006           ; Throw it in graphics registers            ;;
-    STA $2006           ; (When this is done with rendering on,     ;;
-    STA $2007           ; things get glitchy)                       ;;
+	LDA counter  
+	STA $2006           
+    STA $2006          
+    STA $2007          
 	JMP GlitchDone
 
 Glitch2: 
-    LDA xpos  
-    LDX xpos 	
-    STA $0400, x
-	STA ($0400+4), x	
+    LDA xpos  	
+	SBC samplePointer
+	SBC (SPRATZ_RAM+3)
 	LDX animationClock
 	STA $0200, x 
     JMP GlitchDone
