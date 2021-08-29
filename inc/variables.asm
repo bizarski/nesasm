@@ -1,4 +1,4 @@
-music           .rs 16
+music           .rs 23
 
 buttons1   		.rs 1  ; player 1 gamepad buttons, one bit per button
 buttonlatch		.rs 1

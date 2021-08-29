@@ -605,6 +605,7 @@ TitleStartPressed:
   
  
 FinishStartPressed:
+
   RTS 
 
   .include "inc/play_routines.asm"

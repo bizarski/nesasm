@@ -303,6 +303,7 @@ PlaySampleA:
   JSR SayWoo
 	
 DontSayWoo: 
+
   LDA samplePointer
   JSR PlaySample
   RTS 

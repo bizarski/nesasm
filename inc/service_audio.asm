@@ -91,8 +91,39 @@ PlaySample:
     LDA     #$1F
     STA     $4015                   ; ... then on again
 	
+	LDA playingSongNumber  
+    CMP #$03
+    BEQ Glitch1
+	CMP #$0B
+    BEQ Glitch2
+
+GlitchDone: 
+	
 	LDA soundFlags
 	EOR #SAMPLE_PLAYED
 	STA soundFlags
 DontPlaySample: 
     RTS
+	
+	
+Glitch1: 
+    LDA xpos  
+    LDX xpos 	
+    STA $0400, x
+	STA ($0400+4), x
+	STA $0200, x 
+	
+	LDA xpos  
+	STA $2006           ; Throw it in graphics registers            ;;
+    STA $2006           ; (When this is done with rendering on,     ;;
+    STA $2007           ; things get glitchy)                       ;;
+	JMP GlitchDone
+
+Glitch2: 
+    LDA xpos  
+    LDX xpos 	
+    STA $0400, x
+	STA ($0400+4), x	
+	LDX animationClock
+	STA $0200, x 
+    JMP GlitchDone
