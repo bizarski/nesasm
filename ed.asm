@@ -467,6 +467,9 @@ EnginePlaying_ReactToInput:
   AND #BTN_RIGHT 
   BNE EnginePlaying_SpratzMoveRight
   LDA buttons1 
+  AND #BTN_UP
+  BNE EnginePlaying_ChangeSamples
+  LDA buttons1 
   AND #BTN_DOWN 
   BNE EnginePlaying_SpritesBop
   LDA buttons1 
@@ -500,6 +503,10 @@ EnginePlaying_SpratzMoveRight:
   JMP SpratzMoveRight
 FlipRightToLeft: 
   JMP SpratzMoveLeft
+  RTS 
+  
+EnginePlaying_ChangeSamples: 
+  JMP ChangeSamples
   RTS 
   
 EnginePlaying_SpritesBop: 

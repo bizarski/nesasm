@@ -286,6 +286,10 @@ SayWoo:
   RTS 
 
 PlaySampleA: 
+  LDA #SAMPLE_PLAYED
+  BIT soundFlags
+  BNE DontPlaySampleA
+
   CLC 
   
   LDA WOO_RAM
@@ -306,9 +310,14 @@ DontSayWoo:
 
   LDA samplePointer
   JSR PlaySample
+DontPlaySampleA: 
   RTS 
 
 PlaySampleB:
+  LDA #SAMPLE_PLAYED
+  BIT soundFlags
+  BNE DontPlaySampleB
+  
   CLC
 
   LDA WOO_RAM
@@ -330,16 +339,11 @@ DontSayWoo2:
   CLC
   ADC #$01
   JSR PlaySample
+DontPlaySampleB: 
   RTS 
 
 
-SpritesBop: 
-  LDX #LOW(SPRATZ_RAM)
-  LDA currentHeroBop
-  JSR ChangeHeroTiles
-  LDA #$29
-  STA (SPRATZ_RAM+1+4*5)
-
+ChangeSamples: 
   LDA #SAMPLE_CHANGED
   BIT soundFlags
   BNE SkipUpdateSample  
@@ -364,7 +368,31 @@ StoreSamplePointer:
   LDA soundFlags
   EOR #SAMPLE_CHANGED
   STA soundFlags
+
+SkipUpdateSample: 
+  RTS
+
+
+SpritesBop: 
+  LDX #LOW(SPRATZ_RAM)
+  LDA currentHeroBop
+  JSR ChangeHeroTiles
+  LDA #$29
+  STA (SPRATZ_RAM+1+4*5)
+
+  LDA #SAMPLE_PLAYED
+  BIT soundFlags
+  BNE DontPlayHey
+
+  LDA NOISE_RAM
+  CMP #$13
+  BCC DontSayWoo3
+  CMP #$19
+  BCS DontSayWoo3
+  JSR SayWoo
+
+DontSayWoo3:
   LDA #$0A
   JSR PlaySample
-SkipUpdateSample: 
+DontPlayHey: 
   RTS

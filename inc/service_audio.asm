@@ -69,10 +69,6 @@ PlaySample:
     ASL A
     TAY
 	
-	LDA #SAMPLE_PLAYED
-	BIT soundFlags
-	BNE DontPlaySample
-	
     LDA     dmc_sample_table+0,y
     STA     $4010                   ; write sample frequency
 	
@@ -102,7 +98,7 @@ GlitchDone:
 	LDA soundFlags
 	EOR #SAMPLE_PLAYED
 	STA soundFlags
-DontPlaySample: 
+
     RTS
 	
 	
