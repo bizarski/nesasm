@@ -229,7 +229,8 @@ EnginePlaying_SkipPills:
   JSR AnimateWoo
 SkipAnimateWoo: 
 
-  JSR EnginePlaying_ReactToInput
+  JSR EnginePlaying_ReactToDpad
+  JSR EnginePlaying_ReactToActions
   
   LDA playingSongNumber
   BEQ SkipMusic
@@ -459,7 +460,7 @@ EngineTitle_ArrowMoveDown:
   JMP ArrowMoveDown
   RTS 
 
-EnginePlaying_ReactToInput: 
+EnginePlaying_ReactToDpad: 
   LDA buttons1 
   AND #BTN_LEFT 
   BNE EnginePlaying_SpratzMoveLeft
@@ -469,9 +470,15 @@ EnginePlaying_ReactToInput:
   LDA buttons1 
   AND #BTN_UP
   BNE EnginePlaying_ChangeSamples
-  LDA buttons1 
-  AND #BTN_DOWN 
-  BNE EnginePlaying_SpritesBop
+; below will be executed if NOT LEFT/RIGHT/UP
+  LDA #SAMPLE_CHANGED    ; 00000001
+  EOR #%11111111                ; 11111110
+  AND soundFlags
+  STA soundFlags
+
+  RTS
+
+EnginePlaying_ReactToActions: 
   LDA buttons1 
   AND #BTN_SELECT
   BNE EnginePlaying_PlayingSelectPressed
@@ -481,9 +488,28 @@ EnginePlaying_ReactToInput:
   LDA buttons1 
   AND #BTN_B
   BNE EnginePlaying_MoveGuiness
+; below will be executed if NOT SELECT/A/B
+; reset Guiness
+  JSR ShowGuiness
   LDA buttons1 
-  AND #%00000000
-  BEQ EnginePlaying_ResetTriggers
+  AND #BTN_DOWN 
+  BNE EnginePlaying_SpritesBop
+; below will be executed if NOT SELECT/A/B/DOWN 
+; reset Sparx head
+  LDX #LOW(SPRATZ_RAM)
+  LDA currentHero
+  JSR ChangeHeroTiles
+  LDA #$21
+  STA (SPRATZ_RAM+1+4*5)
+; reset samples 
+  JSR ResetSamples
+  RTS
+  
+ResetSamples: 
+  LDA #SAMPLE_PLAYED    ; 00000001
+  EOR #%11111111 		; 11111110
+  AND soundFlags      
+  STA soundFlags
   RTS
 
 EnginePlaying_SpratzMoveLeft: 
@@ -538,30 +564,6 @@ e_PlaySampleA:
 e_PlaySampleB: 
   JMP PlaySampleB
   RTS
-
-EnginePlaying_ResetTriggers: 
-ResetHead: 
-  LDX #LOW(SPRATZ_RAM)
-  LDA currentHero
-  JSR ChangeHeroTiles
-  LDA #$21
-  STA (SPRATZ_RAM+1+4*5)
-ResetGuiness: 
-  JSR ShowGuiness
-ResetSamples: 
-  LDA #SAMPLE_PLAYED    ; 00000001
-  EOR #%11111111 		; 11111110
-  AND soundFlags      
-  STA soundFlags
-
-  LDA #SAMPLE_CHANGED    ; 00000001
-  EOR #%11111111 		 ; 11111110
-  AND soundFlags      
-  STA soundFlags
-  
-  RTS
-
-
 
 ResetHeroHitFlag: 
   LDA #HERO_HIT
