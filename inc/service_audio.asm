@@ -56,9 +56,18 @@ InitTrack:
 	
 	LDY playingSongNumber
 	DEY
-	LDA trackNumberInBankTable, y	; song number
+	
+	LDA frameRateIs60
+	BNE LoadNTSC	
+	LDX #$01		; 00 for NTSC or $01 for PAL
+	JMP InitTrackFromBank
+LoadNTSC: 
 	LDX #$00		; 00 for NTSC or $01 for PAL
 
+InitTrackFromBank: 
+
+	LDA trackNumberInBankTable, y	; song number
+	
 	JSR INIT_ADDRESS
 
 	JMP GameEngineDone

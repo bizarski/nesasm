@@ -84,6 +84,28 @@ clrmem:
 vblankwait2:      ; Second wait for vblank, PPU is ready after this
   BIT $2002
   BPL vblankwait2
+  
+  
+;;;;;;;
+
+
+;wait for the next NTSC vertical blank (PAL and Dendy would take longer)
+   LDX #$70
+cd1:
+   LDY #$35
+cd2: 
+   DEY
+   BNE cd2
+   DEX
+   BNE cd1
+
+   ;detect whether the frame rate is 60Hz or 50Hz
+   LDA $2002
+   STA frameRateIs60
+
+
+;;;;;;;;  
+
 
   JSR LoadPalette9
 				
@@ -786,44 +808,6 @@ Bloop:
   STA $4003
   RTS
 
-LoadMenuBackground:
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
-
-  LDA #low(menu_background)
-  STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(menu_background)
-  STA pointerHi       ; put the high byte of the address into pointer
-  LDX #$00            ; start at pointer + 0
-  LDY #$00
-  JSR LoadNametable
-  RTS 
-
-
-LoadSprites:
-  LDX #$00
-LoadPillsLoop: 
-  LDA pillsprites, x     
-  STA $0400, x         
-  INX                   
-  CPX #$14             
-  BNE LoadPillsLoop   
-
-
-  LDX #$00              ; start at 0
-LoadSpritesLoop:
-  LDA sprites, x        ; load data from address (sprites +  x)
-  STA $0414, x          ; store into RAM address ($0400 + x)
-  INX                   ; X = X + 1
-  CPX #$D4              ; Compare X 
-  BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
-                        ; if compare was equal to 32, keep going down
-  RTS 
-
-
 spritepalette: 
   .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
 
@@ -858,6 +842,42 @@ bgpalette13:
 
   .bank 15 ; (4/4 last bank/fixed) $E000
   .org $E000
+
+LoadSprites:
+  LDX #$00
+LoadPillsLoop: 
+  LDA pillsprites, x     
+  STA $0400, x         
+  INX                   
+  CPX #$14             
+  BNE LoadPillsLoop   
+
+
+  LDX #$00              ; start at 0
+LoadSpritesLoop:
+  LDA sprites, x        ; load data from address (sprites +  x)
+  STA $0414, x          ; store into RAM address ($0400 + x)
+  INX                   ; X = X + 1
+  CPX #$D4              ; Compare X 
+  BNE LoadSpritesLoop   ; Branch to LoadSpritesLoop if compare was Not Equal to zero
+                        ; if compare was equal to 32, keep going down
+  RTS 
+
+LoadMenuBackground:
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+
+  LDA #low(menu_background)
+  STA pointerLo       ; put the low byte of the address of background into pointer
+  LDA #HIGH(menu_background)
+  STA pointerHi       ; put the high byte of the address into pointer
+  LDX #$00            ; start at pointer + 0
+  LDY #$00
+  JSR LoadNametable
+  RTS 
 
   .include "bg-stage.asm"
   .include "inc/backgrounds.asm"
