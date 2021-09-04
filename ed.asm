@@ -165,9 +165,9 @@ GameEngineDone:
 
 EngineTitle:
   JSR DisplayHighScore
-  JSR EngineTitle_ReactToInput
-  
-  JMP GameEngineDone
+  JMP EngineTitle_ReactToInput
+ 
+;;;;;;;
 
 EngineGameOver: 
   LDA buttons1 
@@ -180,8 +180,7 @@ EngineGameOver:
   
 EngineGameOver_Reset: 
   JSR ResetHeroHitFlag  
-  JSR PlayingSelectPressed
-  JMP GameEngineDone
+  JMP PlayingSelectPressed
   
 EnginePlaying:   
   JSR AdvanceAnimationFrame 
@@ -193,7 +192,8 @@ EnginePlaying:
   BNE EnginePlaying_SkipCoins
   
   JSR AnimateCoins
-  JSR SpratzCheckBonus2
+  JMP SpratzCheckBonus2
+SpratzCheckBonus2Done:
   LDA #HERO_HIT 
   BIT gameFlags
   BNE PlayerBonus
@@ -213,11 +213,13 @@ EnginePlaying_SkipUFO:
   BNE EnginePlaying_SkipPills
   JSR AnimatePills
   JSR AnimatePills2
-  JSR SpratzCheckHit
+  JMP SpratzCheckHit
+SpratzCheckHitDone:
   LDA #HERO_HIT 
   BIT gameFlags
   BNE PlayerHit
-  JSR SpratzCheckBonus
+  JMP SpratzCheckBonus
+SpratzCheckBonusDone: 
   LDA #HERO_HIT 
   BIT gameFlags
   BNE PlayerBonus
@@ -229,8 +231,11 @@ EnginePlaying_SkipPills:
   JSR AnimateWoo
 SkipAnimateWoo: 
 
-  JSR EnginePlaying_ReactToDpad
-  JSR EnginePlaying_ReactToActions
+  JMP EnginePlaying_ReactToActions
+ActionsReactDone: 
+
+  JMP EnginePlaying_ReactToDpad
+DpadReactDone: 
   
   LDA playingSongNumber
   BEQ SkipMusic
@@ -248,12 +253,10 @@ SkipMusic:
   JMP GameEngineDone
 GoToInitTrack: 
   JMP InitTrack
-  RTS 
-
 SongFinished: 
-  JSR PlayingSelectPressed
-  JMP GameEngineDone	
-  RTS
+  JMP PlayingSelectPressed
+
+;;;;;;;;;;;;;;;
 
 PlayerHit: 
   LDA heroSparx+2
@@ -266,11 +269,9 @@ PlayerHit:
   ADC #$01
   STA (SPRATZ_RAM+1+4*5)
   
-  JSR EnginePlaying_StopMusic
+  JSR AS_StopMusic
   JSR Bloop
   JMP GameEngineDone
-
-  RTS 
 
 PlayerBonus: 
   JSR ResetHeroHitFlag
@@ -280,8 +281,7 @@ PlayerBonus:
   JSR IncrementScoreDisplay  
   
   JSR SayWoo
-  jmp EnginePlaying_SkipPills
-  RTS 
+  JMP EnginePlaying_SkipPills
 
 HideAllSprites: 
   LDX #$00
@@ -319,10 +319,8 @@ ShowCymbals:
   CLC 
   ADC #$08
   STA ($0400+3+4), x
-  CLC 
   ADC #$08
   STA ($0400+3+4*2), x
-  CLC 
   ADC #$08
   STA ($0400+3+4*3), x
   LDA #SPRITE_CYM_Y
@@ -384,7 +382,6 @@ ShowMetaSpriteY:
   ADC #$08
   STA ($0400+4*2), x
   STA ($0400+4*3), x
-  CLC
   ADC #$08
   STA ($0400+4*4), x
   STA ($0400+4*5), x
@@ -448,17 +445,17 @@ EngineTitle_ReactToInput:
   LDA #$00
   STA buttonlatch
 DoNothing: 
-  RTS
+  JMP GameEngineDone
   
 EngineTitle_TitleStartPressed: 
   JMP TitleStartPressed
-  RTS 
+;;;;;;;;;;
 EngineTitle_ArrowMoveUp: 
   JMP ArrowMoveUp
-  RTS
+;;;;;;;;;;
 EngineTitle_ArrowMoveDown: 
   JMP ArrowMoveDown
-  RTS 
+;;;;;;;;;;
 
 EnginePlaying_ReactToDpad: 
   LDA buttons1 
@@ -471,12 +468,12 @@ EnginePlaying_ReactToDpad:
   AND #BTN_UP
   BNE EnginePlaying_ChangeSamples
 ; below will be executed if NOT LEFT/RIGHT/UP
-  LDA #SAMPLE_CHANGED    ; 00000001
+  LDA #SAMPLE_CHANGED    		; 00000001
   EOR #%11111111                ; 11111110
   AND soundFlags
   STA soundFlags
-
-  RTS
+  JMP DpadReactDone
+;;;;;;;;;;;;;;;;;;;;;;;
 
 EnginePlaying_ReactToActions: 
   LDA buttons1 
@@ -503,7 +500,7 @@ EnginePlaying_ReactToActions:
   STA (SPRATZ_RAM+1+4*5)
 ; reset samples 
   JSR ResetSamples
-  RTS
+  JMP ActionsReactDone
   
 ResetSamples: 
   LDA #SAMPLE_PLAYED    ; 00000001
@@ -519,7 +516,6 @@ EnginePlaying_SpratzMoveLeft:
   JMP SpratzMoveLeft
 FlipLeftToRight: 
   JMP SpratzMoveRight
-  RTS 
  
 
 EnginePlaying_SpratzMoveRight: 
@@ -529,19 +525,15 @@ EnginePlaying_SpratzMoveRight:
   JMP SpratzMoveRight
 FlipRightToLeft: 
   JMP SpratzMoveLeft
-  RTS 
   
 EnginePlaying_ChangeSamples: 
   JMP ChangeSamples
-  RTS 
   
 EnginePlaying_SpritesBop: 
   JMP SpritesBop
-  RTS 
   
 EnginePlaying_PlayingSelectPressed:
   JMP PlayingSelectPressed
-  RTS 
 
 EnginePlaying_MoveGuiness:
   LDX #LOW(GUINESS_RAM)
@@ -554,16 +546,15 @@ EnginePlaying_MoveGuiness:
   LDA buttons1 
   AND #BTN_B
   BNE e_PlaySampleB
-exitMoveGuiness:
-  RTS 
+  JMP ActionsReactDone
 
 e_PlaySampleA: 
-  JMP PlaySampleA
-  RTS 
+  JSR PlaySampleA
+  JMP ActionsReactDone
 
 e_PlaySampleB: 
-  JMP PlaySampleB
-  RTS
+  JSR PlaySampleB
+  JMP ActionsReactDone
 
 ResetHeroHitFlag: 
   LDA #HERO_HIT
@@ -612,11 +603,9 @@ TitleStartPressed:
   BEQ goto_PlayTrack12
   CMP #TRACK_13
   BEQ goto_PlayTrack13
-  
- 
-FinishStartPressed:
+  JMP GameEngineDone
 
-  RTS 
+;;;;;;;;;;
 
   .include "inc/play_routines.asm"
 
@@ -656,7 +645,6 @@ HighScoreEnd:
   STA (SCORE_RAM+1+4)
   STA (SCORE_RAM+1+4*2)
   
-  
   LDA currentSong 
   STA ARROW_RAM
   
@@ -664,7 +652,7 @@ EnginePlaying_StopMusic:
 
   JSR AS_StopMusic
   
-  RTS 
+  JMP GameEngineDone 
 
 DisplayHighScore: 
   LDA #$BE 
@@ -733,8 +721,8 @@ StillMovingUp:
   LDA #$01
   STA buttonlatch
 StopMovingUp:
-  RTS
-
+  JMP GameEngineDone
+;;;;;;;;;;;
 ArrowMoveDown: 
   LDA ARROW_RAM
   CMP #MENU_X_LIMIT_BOTTOM
@@ -753,7 +741,8 @@ StillMovingDown:
   LDA #$01
   STA buttonlatch
 StopMovingDown:
-  RTS
+  JMP GameEngineDone
+;;;;;;;;;;;;
 
   .include "inc/hero_movement.asm"
   

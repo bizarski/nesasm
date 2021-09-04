@@ -36,7 +36,7 @@ PlayTrack1:
   JSR LoadPalette1
   JSR LoadSong1Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  JMP GameEngineDone
 
 PlayTrack2: 
   LDA #$02
@@ -48,7 +48,7 @@ PlayTrack2:
   JSR LoadPalette2
   JSR LoadSong2Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed 
+  JMP GameEngineDone 
 
 PlayTrack3: 
   LDA #$03
@@ -60,7 +60,7 @@ PlayTrack3:
   JSR LoadPalette1
   JSR LoadSong3Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  JMP GameEngineDone
 
 PlayTrack4: 
   LDA #$04
@@ -72,7 +72,7 @@ PlayTrack4:
   JSR LoadPalette4
   JSR LoadSong4Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed 
+  JMP GameEngineDone 
 
 PlayTrack5: 
   LDA #$05
@@ -84,7 +84,7 @@ PlayTrack5:
   JSR LoadPalette5
   JSR LoadSong5Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  JMP GameEngineDone
 
 PlayTrack6: 
   LDA #$06
@@ -96,7 +96,7 @@ PlayTrack6:
   JSR LoadPalette6
   JSR LoadSong6Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  JMP GameEngineDone
 
 PlayTrack7: 
   LDA #$07
@@ -108,7 +108,7 @@ PlayTrack7:
   JSR LoadPalette1
   JSR LoadSong7Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  JMP GameEngineDone
 
 PlayTrack8: 
   LDA #$08
@@ -120,7 +120,7 @@ PlayTrack8:
   JSR LoadPalette1
   JSR LoadSong8Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  JMP GameEngineDone
 
 PlayTrack9: 
   LDA #$09
@@ -132,7 +132,7 @@ PlayTrack9:
   JSR LoadPalette9
   JSR LoadSong9Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  JMP GameEngineDone
 
 PlayTrack10: 
   LDA #$0A
@@ -144,7 +144,7 @@ PlayTrack10:
   JSR LoadPalette1
   JSR LoadSong10Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  JMP GameEngineDone
 
 PlayTrack11: 
   LDA #$0B
@@ -156,7 +156,7 @@ PlayTrack11:
   JSR LoadPalette11
   JSR LoadSong11Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  JMP GameEngineDone
   
 PlayTrack12: 
   LDA #$0C
@@ -168,7 +168,7 @@ PlayTrack12:
   JSR LoadPalette1
   JSR LoadSong12Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  JMP GameEngineDone
 
 PlayTrack13: 
   LDA #$0D
@@ -180,4 +180,4 @@ PlayTrack13:
   JSR LoadPalette13
   JSR LoadSong13Background
   JSR AS_StartPlayingCurrentTrack
-  JMP FinishStartPressed
+  JMP GameEngineDone

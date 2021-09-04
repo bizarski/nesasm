@@ -56,29 +56,24 @@ AnimateWalk:
 AnimateGuitars: 
   LDA nextFrame
   CMP #$01
-  BEQ MoveGuitarsUp
+  BNE SkipMoveGuitarsUp
+  LDA #SPRITE_BASS_Y
+  JSR MoveBass 
+  LDA #SPRITE_GUITAR_Y
+  JSR MoveGuitars
+SkipMoveGuitarsUp: 
   LDA nextFrame
   CMP #$03
-  BEQ MoveGuitarsDown
+  BNE SkipMoveGuitarsDown
+  LDA #SPRITE_BASS_Y
+  SEC
+  SBC #$01
+  JSR MoveBass 
+  LDA #SPRITE_GUITAR_Y
+  SBC #$01
+  JSR MoveGuitars
+SkipMoveGuitarsDown: 
   RTS
-  
-MoveGuitarsUp: 
-  LDA #SPRITE_BASS_Y
-  JSR MoveBass 
-  LDA #SPRITE_GUITAR_Y
-  JSR MoveGuitars
-  RTS 
-
-MoveGuitarsDown: 
-  LDA #SPRITE_BASS_Y
-  SEC
-  SBC #$01
-  JSR MoveBass 
-  LDA #SPRITE_GUITAR_Y
-  SEC
-  SBC #$01
-  JSR MoveGuitars
-  RTS 
 
 MoveGuitars: 
   STA GUITAR_RAM
@@ -106,69 +101,72 @@ AnimateCymbals:
   LDX #$94	
   LDA nextFrame
   CMP #$01
-  BEQ CymbalsChangeFrameA
-  LDA nextFrame
-  CMP #$03
-  BEQ CymbalsChangeFrameB
-  RTS
-
-CymbalsChangeFrameA: 
+  BNE SkipCymbalsChangeFrameA
   LDA #$48
   JSR CymbalsChangeFrame
-  RTS 
-CymbalsChangeFrameB: 
+SkipCymbalsChangeFrameA:
+  LDA nextFrame
+  CMP #$03
+  BNE SkipCymbalsChangeFrameB
   LDA #$58
   JSR CymbalsChangeFrame
-  RTS 
+SkipCymbalsChangeFrameB:
+  RTS
+
 CymbalsChangeFrame: 
   STA CYMBALS_RAM+1
   CLC 
   ADC #$01 
   STA (CYMBALS_RAM+1+4)
-  CLC
   ADC #$01 
   STA (CYMBALS_RAM+1+4*2)
-  CLC
   ADC #$01 
   STA (CYMBALS_RAM+1+4*3)
   RTS 
  
- 
-  
 AnimateUFO: 
   LDA (UFO_RAM+3)
-  CMP #$FC
+  CMP #$F0					; check UFO horizontal position
   BCC SkipDelaySpawn
 
-  LDA #SAMPLE_PLAYED
-  BIT soundFlags
-  BEQ ResetUFO
-  
-  LDA samplePointer
-  CMP #$04
-  BNE ResetUFO
-  
-  LDA PAUSE_RAM 
-  CMP #$FF
-  BEQ ResetUFO 
-  
-  LDA NOISE_RAM
-  CMP #$13
-  BCC ResetUFO
-  CMP #$19
-  BCS ResetUFO
-  
-  JMP SkipDelaySpawn
-  
-ResetUFO: 
   LDA #$F0 
   STA (UFO_RAM)
   STA (UFO_RAM+4)
-  JMP SkipUFO
+
+  LDA #SAMPLE_PLAYED
+  BIT soundFlags
+  BEQ SkipUFO
+  
+  LDA samplePointer
+  CMP #$04
+  BNE SkipUFO
+  
+  LDA PAUSE_RAM 
+  CMP #$FF
+  BEQ SkipUFO 
+  
+  LDA NOISE_RAM
+  CMP #$13
+  BCC SkipUFO
+  CMP #$19
+  BCS SkipUFO
+  
+  JMP SkipDelaySpawn
+
 SkipDelaySpawn: 
+  LDA (UFO_RAM)
+  CMP #$25 
+  BEQ SkipResetUFO
+  
   LDA #$25 
   STA (UFO_RAM)
   STA (UFO_RAM+4)
+  
+  LDA #$00
+  STA (UFO_RAM+3)
+  LDA #$08
+  STA (UFO_RAM+4+3)
+SkipResetUFO: 
   INC (UFO_RAM+3)
   INC (UFO_RAM+3)
   INC (UFO_RAM+4+3)
@@ -183,11 +181,10 @@ DelaySpawnBluePill:
   STA (BLUEPILL_RAM+0)
   STA (BLUEPILL_RAM+4)
   LDA (KICK_RAM+4)
-  SEC
   CMP #$A0 
   BCS DontDelay
   JMP SkipFall
-  
+;;;;;;;;;;;;;;;;;
 InitializeXPosition: 
   LDA xpos
   STA (BLUEPILL_RAM+3)
@@ -232,7 +229,6 @@ DelaySpawnRedPill:
   STA (REDPILL_RAM+0)
   STA (REDPILL_RAM+4)
   LDA (KICK_RAM+3)
-  SEC
   CMP #$F0 
   BCS DontDelay2
   JMP SkipFallRedPill
@@ -248,13 +244,11 @@ InitializeXPositionRed:
 
 InitializeYPositionRed:     
   LDA (BLUEPILL_RAM+0)
-  CMP #($44 - $10)
-  BCC continue_inity2
-  CMP #($44 + $10)
-  BCS continue_inity2
-  JMP SkipFallRedPill
+  CMP #$64
+  BCC SkipFallRedPill
+  CMP #$A0
+  BCS SkipFallRedPill
   
-continue_inity2:
   LDA #$44
   STA (REDPILL_RAM+0)
   STA (REDPILL_RAM+0+4)
@@ -294,7 +288,6 @@ DelaySpawnCoin:
   LDA #$F0
   STA (COIN_RAM+0)
   LDA (KICK_RAM)
-  SEC
   CMP #$C0 
   BCS DontDelayCoin
   JMP SkipFallCoin

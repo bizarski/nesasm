@@ -8,7 +8,6 @@ FlipLoopLeft:
   LDA (SPRATZ_RAM+2), y
   ORA #%01000000
   STA (SPRATZ_RAM+2), y
-  CLC 
   TXA 
   LSR A 
   BCC ShiftSpriteRight ; even
@@ -34,7 +33,6 @@ FlipLoopRight:
   LDA (SPRATZ_RAM+2), y
   AND #%10111111
   STA (SPRATZ_RAM+2), y
-  CLC 
   TXA 
   LSR A 
   BCC ShiftSpriteLeft
@@ -51,8 +49,8 @@ DontUpdateFlag2:
   RTS 
 
 ShiftSpriteLeft: 
-  SEC
   LDA (SPRATZ_RAM+3), y
+  SEC
   SBC #$08
   STA (SPRATZ_RAM+3), y
   
@@ -62,8 +60,8 @@ ShiftSpriteLeft:
   JMP ContinueMove 
   
 ShiftSpriteRight: 
-  CLC
   LDA (SPRATZ_RAM+3), y
+  CLC
   ADC #$08
   STA (SPRATZ_RAM+3), y
 
@@ -91,7 +89,7 @@ SpratzMoveLeftLoop:
   CPX #LOW(SPRATZ_RAM)+32
   BNE SpratzMoveLeftLoop
 SpratzDontMoveLeft:
-  RTS
+  JMP DpadReactDone
 
 
 SpratzMoveRight:
@@ -113,7 +111,7 @@ SpratzMoveRightLoop:
   CPX #LOW(SPRATZ_RAM)+32
   BNE SpratzMoveRightLoop
 SpratzDontMoveRight:
-  RTS
+  JMP DpadReactDone
   
   
 SetHitFlag: 
@@ -123,11 +121,11 @@ SetHitFlag:
   RTS
 
 CheckHitSpriteFlipped:
-  SEC 
-  CLC 
+  SEC
   SBC #$08
   CMP tmp 
   BCS SpritesNoHit
+  CLC
   ADC #$18
   CMP tmp 
   BCC SpritesNoHit
@@ -135,12 +133,12 @@ CheckHitSpriteFlipped:
 SpritesNoHit: 
   RTS 
   
-CheckHitSprite: 
-  SEC 
+CheckHitSprite:  
   CLC
   ADC #$08
   CMP tmp 
   BCC SpritesNoHit2
+  SEC
   SBC #$18
   CMP tmp 
   BCS SpritesNoHit2
@@ -148,68 +146,76 @@ CheckHitSprite:
 SpritesNoHit2: 
   RTS 
  
-CheckHitHeroFlipped: 
+CheckHitHero: 
   LDA (SPRATZ_RAM+3)
   JSR CheckHitSprite
   RTS
 
-CheckHitHero: 
+CheckHitHeroFlipped: 
   LDA (SPRATZ_RAM+3)
   JSR CheckHitSpriteFlipped
   RTS
 
 SpratzCheckHit: 
   LDA (BLUEPILL_RAM+4)    ; bottom part of pill 
-  SEC
   CMP #SPRITE_SPR_Y
-  BCC NoHit
+  BCC SpratzNoHit
   CMP #(SPRITE_SPR_Y+8*3) ; full length of metasprite
-  BCS NoHit
+  BCS SpratzNoHit
   LDA (BLUEPILL_RAM+3+4)
   STA tmp 
   LDA #%01000000
   BIT (SPRATZ_RAM+2)
-  BEQ CheckHitHero 
-  BNE CheckHitHeroFlipped
-NoHit: 
-  RTS 
+  BEQ bl_CheckHitHeroFlipped 
+  BNE bl_CheckHitHero
+SpratzNoHit: 
+  JMP SpratzCheckHitDone 
+
+bl_CheckHitHeroFlipped: 
+  JSR CheckHitHeroFlipped
+  JMP SpratzCheckHitDone
+
+bl_CheckHitHero: 
+  JSR CheckHitHero
+  JMP SpratzCheckHitDone
 
 SpratzCheckBonus: 
   LDA (REDPILL_RAM+4)    ; bottom part of pill 
-  SEC
   CMP #SPRITE_SPR_Y
-  BCC NoBonus
+  BCC SpratzNoBonus
   CMP #(SPRITE_SPR_Y+8*3) ; full length of metasprite
-  BCS NoBonus
+  BCS SpratzNoBonus
   LDA (REDPILL_RAM+3+4)
   STA tmp 
   LDA #%01000000
   BIT (SPRATZ_RAM+2)
-  BEQ b_CheckHitHero 
-  BNE b_CheckHitHeroFlipped
+  BEQ bo_CheckHitHeroFlipped 
+  BNE bo_CheckHitHero
+  
 HidePill:
   LDA #HERO_HIT 
   BIT gameFlags
-  BEQ NoBonus
+  BEQ SpratzNoBonus
   LDA #$F0
   STA (REDPILL_RAM+0)
   STA (REDPILL_RAM+4)
-NoBonus: 
-  RTS
+SpratzNoBonus: 
+  JMP SpratzCheckBonusDone
 
-b_CheckHitHero:
-  JSR CheckHitHero
-  JMP HidePill
-  RTS
-  
-b_CheckHitHeroFlipped:
+;;;;;;;;;;;;
+
+bo_CheckHitHeroFlipped:
   JSR CheckHitHeroFlipped
   JMP HidePill
-  RTS
+;;;;;;;;;
+  
+bo_CheckHitHero:
+  JSR CheckHitHero
+  JMP HidePill
+;;;;;;;;;
   
 SpratzCheckBonus2: 
   LDA (COIN_RAM)    ; bottom part of pill 
-  SEC
   CMP #SPRITE_SPR_Y
   BCC NoBonus2
   CMP #(SPRITE_SPR_Y+8*3) ; full length of metasprite
@@ -227,18 +233,16 @@ HideCoin:
   LDA #$F0
   STA (COIN_RAM+0)
 NoBonus2: 
-  RTS
+  JMP SpratzCheckBonus2Done
 
 c_CheckHitHero:
-  JSR CheckHitHero
-  JMP HideCoin
-  RTS
-  
-c_CheckHitHeroFlipped:
   JSR CheckHitHeroFlipped
   JMP HideCoin
-  RTS
-
+;;;;;;;;;;;
+c_CheckHitHeroFlipped:
+  JSR CheckHitHero
+  JMP HideCoin
+;;;;;;;;;;;
 IncrementScoreDisplay:
   INC (SCORE_RAM+4*2+1)		; increment 3rd digit tile number
   LDA (SCORE_RAM+4*2+1)
@@ -289,8 +293,6 @@ PlaySampleA:
   LDA #SAMPLE_PLAYED
   BIT soundFlags
   BNE DontPlaySampleA
-
-  CLC 
   
   LDA WOO_RAM
   CMP #$F0 
@@ -311,14 +313,12 @@ DontSayWoo:
   LDA samplePointer
   JSR PlaySample
 DontPlaySampleA: 
-  RTS 
+  RTS
 
 PlaySampleB:
   LDA #SAMPLE_PLAYED
   BIT soundFlags
   BNE DontPlaySampleB
-  
-  CLC
 
   LDA WOO_RAM
   CMP #$F0 
@@ -340,7 +340,7 @@ DontSayWoo2:
   ADC #$01
   JSR PlaySample
 DontPlaySampleB: 
-  RTS 
+  RTS
 
 
 ChangeSamples: 
@@ -370,7 +370,7 @@ StoreSamplePointer:
   STA soundFlags
 
 SkipUpdateSample: 
-  RTS
+  JMP DpadReactDone
 
 
 SpritesBop: 
@@ -395,4 +395,4 @@ DontSayWoo3:
   LDA #$0A
   JSR PlaySample
 DontPlayHey: 
-  RTS
+  JMP ActionsReactDone
