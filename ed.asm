@@ -892,13 +892,13 @@ banktable:              ; Write to this table to switch banks.
 trackNumberInBankTable:
   .byte $00, $01, $02, $00, $01, $00, $01, $00, $01, $00, $00, $01, $00
 heroSparx: 
-  .byte $00, $08, $7C
+  .byte $00, $19, $7C
 heroZappa: 
-  .byte $60, $62
+  .byte $60, $73
 heroIvo: 
-  .byte $40, $42
+  .byte $40, $53
 heroFreddy: 
-  .byte $68, $6A
+  .byte $68, $7B
 
 ;;;;;;;;;;;;;;;;
 

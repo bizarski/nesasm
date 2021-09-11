@@ -374,9 +374,8 @@ SkipUpdateSample:
 
 
 SpritesBop: 
-  LDX #LOW(SPRATZ_RAM)
   LDA currentHeroBop
-  JSR ChangeHeroTiles
+  STA (SPRATZ_RAM+1+4*3)
   LDA #$29
   STA (SPRATZ_RAM+1+4*5)
 
