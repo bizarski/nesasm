@@ -351,7 +351,7 @@ UpdateInventory:
   LDA (INVENTORY_RAM+1)
   CLC
   ADC #$10 
-  CMP #$5E
+  CMP #$4E
   BNE StoreInventoryChange
   LDA #$0E
 StoreInventoryChange: 
@@ -360,7 +360,7 @@ UpdateSamplePointer:
   LDA samplePointer
   CLC 
   ADC #$02
-  CMP #$0A
+  CMP #$08
   BNE StoreSamplePointer
   LDA #$00
 StoreSamplePointer:

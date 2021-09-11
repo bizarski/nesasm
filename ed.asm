@@ -105,12 +105,6 @@ cd2:
 
 
 ;;;;;;;;  
-
-
-  JSR LoadPalette9
-				
-  JSR LoadMenuBackground
-  JSR LoadSprites  
   
   LDA #$00
   STA playingSongNumber
@@ -122,6 +116,10 @@ cd2:
   STA playerScore+1					; reset score
   STA highScore+0
   STA highScore+1					; reset score
+  
+  JSR LoadSongPalette
+  JSR LoadMenuBackground
+  JSR LoadSprites  
   
   LDA #TRACK_1
   STA currentSong
@@ -141,24 +139,12 @@ cd2:
 ;;;;;;;;;;;;;
 
 Forever:
-AdvanceXPos: 
-  LDA xpos 
-  CLC 
-  ADC #$08 
-  CMP #$B8
-  BCC DontResetXPos
-  LDA #$40
-  INC counter
-DontResetXPos: 
-  STA xpos
   JMP Forever     ;jump back to Forever, infinite loop
 
 ;;;;;;;;;;;;;;;
 
    
 NMI:
-  LDA #PPU_SETUP ; enable sprites, enable background
-  STA $2001
   LDA #$00
   STA $2003       ; set the low byte (00) of the RAM address
   LDA #$04
@@ -179,6 +165,7 @@ GameEngine_NotTitle:
 GameEngine_GameOver: 
   JMP EngineGameOver
 GameEngineDone: 
+
   RTI             ; return from interrupt
  
 ;;;;;;;;;;;;;;  
@@ -205,6 +192,17 @@ EngineGameOver_Reset:
   JMP PlayingSelectPressed
   
 EnginePlaying:   
+AdvanceXPos: 
+  LDA xpos 
+  CLC 
+  ADC #$08 
+  CMP #$B8
+  BCC DontResetXPos
+  LDA #$40
+DontResetXPos: 
+  STA xpos
+  INC counter
+
   JSR AdvanceAnimationFrame 
   JSR AnimateGuitars
   JSR AnimateCymbals
@@ -594,9 +592,9 @@ TitleStartPressed:
   LDA #$F0
   STA ARROW_RAM
   
+  JSR ResetPPU
   JSR ResetPlayerScore
   JSR ShowSongSprites
-  JSR ResetPPU
 
   LDA currentSong
   CMP #TRACK_1
@@ -627,16 +625,43 @@ TitleStartPressed:
   BEQ goto_PlayTrack13
   JMP GameEngineDone
 
-;;;;;;;;;;
+goto_PlayTrack1:
+  JMP PlayTrack1
+goto_PlayTrack2:
+  JMP PlayTrack2
+goto_PlayTrack3:
+  JMP PlayTrack3
+goto_PlayTrack4:
+  JMP PlayTrack4
+goto_PlayTrack5:
+  JMP PlayTrack5
+goto_PlayTrack6:
+  JMP PlayTrack6
+goto_PlayTrack7:
+  JMP PlayTrack7
+goto_PlayTrack8:
+  JMP PlayTrack8
+goto_PlayTrack9:
+  JMP PlayTrack9
+goto_PlayTrack10:
+  JMP PlayTrack10
+goto_PlayTrack11:
+  JMP PlayTrack11
+goto_PlayTrack12:
+  JMP PlayTrack12
+goto_PlayTrack13:
+  JMP PlayTrack13
+goto_FinishPlayTrack: 
+  LDA #PPU_SETUP ; enable sprites, enable background
+  STA $2001
+  JSR AS_StartPlayingCurrentTrack
+  JMP GameEngineDone
 
-  .include "inc/play_routines.asm"
+;;;;;;;;;;
 
 PlayingSelectPressed:
   JSR ResetPPU
   JSR HideAllSprites
-  
-  JSR LoadPalette9
-  JSR LoadMenuBackground  
   
    ; Check and update highscore
   LDA highScore+0
@@ -670,9 +695,13 @@ HighScoreEnd:
   LDA currentSong 
   STA ARROW_RAM
   
-EnginePlaying_StopMusic: 
-
   JSR AS_StopMusic
+  
+  JSR LoadSongPalette ; LoadPalette9
+  JSR LoadMenuBackground  
+  
+  LDA #PPU_SETUP ; enable sprites, enable background
+  STA $2001
   
   JMP GameEngineDone 
 
@@ -835,13 +864,29 @@ bgpalette11:
 bgpalette13:
   .incbin "bg13.pal"
 
-  .include "inc/sprites.asm"
+banktable:              ; Write to this table to switch banks.
+  .byte $00, $00, $00, $01, $01, $02, $02, $03, $03, $04, $05, $05, $06
+trackNumberInBankTable:
+  .byte $00, $01, $02, $00, $01, $00, $01, $00, $01, $00, $00, $01, $00
+
+heroSparx: 
+  .byte $00, $19, $7C
+heroZappa: 
+  .byte $60, $73
+heroIvo: 
+  .byte $40, $53
+heroFreddy: 
+  .byte $68, $7B
+
+  .include "inc/play_routines.asm"
 
 ;;;;;;;;;;;;;;;;;;;;
 
 
   .bank 15 ; (4/4 last bank/fixed) $E000
   .org $E000
+
+  .include "inc/sprites.asm"
 
 LoadSprites:
   LDX #$00
@@ -884,21 +929,6 @@ LoadMenuBackground:
   
 menu_background:
   .incbin "menu.nam"
-
-;;;;;;;;;;;;;;;;;;;;
-
-banktable:              ; Write to this table to switch banks.
-  .byte $00, $00, $00, $01, $01, $02, $02, $03, $03, $04, $05, $05, $06
-trackNumberInBankTable:
-  .byte $00, $01, $02, $00, $01, $00, $01, $00, $01, $00, $00, $01, $00
-heroSparx: 
-  .byte $00, $19, $7C
-heroZappa: 
-  .byte $60, $73
-heroIvo: 
-  .byte $40, $53
-heroFreddy: 
-  .byte $68, $7B
 
 ;;;;;;;;;;;;;;;;
 

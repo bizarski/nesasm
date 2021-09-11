@@ -849,71 +849,13 @@ LoadNameTableLoop:
   RTS
   
 
-LoadPalette1: 
-  LDA #low(bgpalette)
+LoadSongPalette: 
+  LDA playingSongNumber
+  TAX
+  LDA songPalettesLB, x
   STA pointerLo       ; put the low byte of the address of background into pointer
-  LDA #HIGH(bgpalette)
+  LDA songPalettesHB, x
   STA pointerHi       ; put the high byte of the address into pointer
-  JSR LoadPaletteRoutine
-  RTS 
-
-LoadPalette2: 
-  LDA #low(bgpalette2)
-  STA pointerLo       
-  LDA #HIGH(bgpalette2)
-  STA pointerHi      
-  JSR LoadPaletteRoutine
-  RTS 
-
-LoadPalette4: 
-  LDA #low(bgpalette4)
-  STA pointerLo       
-  LDA #HIGH(bgpalette4)
-  STA pointerHi      
-  JSR LoadPaletteRoutine
-  RTS 
-
-LoadPalette5: 
-  LDA #low(bgpalette5)
-  STA pointerLo       
-  LDA #HIGH(bgpalette5)
-  STA pointerHi      
-  JSR LoadPaletteRoutine
-  RTS 
-  
-LoadPalette6: 
-  LDA #low(bgpalette6)
-  STA pointerLo       
-  LDA #HIGH(bgpalette6)
-  STA pointerHi      
-  JSR LoadPaletteRoutine
-  RTS 
-  
-LoadPalette9: 
-  LDA #low(bgpalette9)
-  STA pointerLo       
-  LDA #HIGH(bgpalette9)
-  STA pointerHi      
-  JSR LoadPaletteRoutine
-  RTS 
-  
-LoadPalette11: 
-  LDA #low(bgpalette11)
-  STA pointerLo       
-  LDA #HIGH(bgpalette11)
-  STA pointerHi      
-  JSR LoadPaletteRoutine
-  RTS 
-  
-LoadPalette13: 
-  LDA #low(bgpalette13)
-  STA pointerLo       
-  LDA #HIGH(bgpalette13)
-  STA pointerHi      
-  JSR LoadPaletteRoutine
-  RTS 
-  
-LoadPaletteRoutine: 
   LDA $2002             
   LDA #$3F
   STA $2006             
