@@ -391,7 +391,7 @@ SpritesBop:
   JSR SayWoo
 
 DontSayWoo3:
-  LDA #$0A
+  LDA #$08
   JSR PlaySample
 DontPlayHey: 
   JMP ActionsReactDone

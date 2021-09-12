@@ -4,7 +4,7 @@
   .inesmir 1   ; background mirroring
 
 ;; DECLARE SOME VARIABLES HERE
-  .rsset $0000  ;;start variables at ram location 0
+  .rsset $0050  ;;start variables at ram location 0
 
   .include "inc/variables.asm"
 
@@ -47,8 +47,6 @@
 	.bank 14
   
 	.org $C000
-  
-  .include "inc/samples.asm"
   
 RESET:
   SEI          ; disable IRQs
@@ -103,8 +101,8 @@ cd2:
    LDA $2002
    STA frameRateIs60
 
-
-;;;;;;;;  
+  
+;;;;;;
   
   LDA #$00
   STA playingSongNumber
@@ -169,6 +167,10 @@ GameEngineDone:
   RTI             ; return from interrupt
  
 ;;;;;;;;;;;;;;  
+  
+; $C0B8
+  .include "inc/samples.asm" ; 55 55 55 95 AA 2A 95 E0
+
   .include "inc/service_audio.asm"
 
 
@@ -264,7 +266,7 @@ DpadReactDone:
   BIT soundFlags
   BEQ GoToInitTrack
 
-  JSR PLAY_ADDRESS
+ ; JSR PLAY_ADDRESS
   
   LDA IS_PLAYING_RAM
   BEQ SongFinished
