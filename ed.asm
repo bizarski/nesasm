@@ -266,7 +266,7 @@ DpadReactDone:
   BIT soundFlags
   BEQ GoToInitTrack
 
- ; JSR PLAY_ADDRESS
+  JSR PLAY_ADDRESS
   
   LDA IS_PLAYING_RAM
   BEQ SongFinished

@@ -1,6 +1,6 @@
 
 sampleKick: 
-  .incbin "dmc/SMB3_bass.dmc"
+  .incbin "dmc/TMNT2_$C2C0.dmc"
 
 sampleSnare: 
   .incbin "dmc/1SN00019.dmc"
@@ -34,7 +34,7 @@ dmc_sample_table:
   .db $0F,$00,(sampleCowbell-sampleKick+$B8)/64,$12
   .db $0F,$00,(sampleHandDrum-sampleKick+$B8)/64,$12
   
-  .db $0F,$00,(sampleKick3-sampleKick+$B8)/64,$0F
+  .db $0F,$00,(sampleKick3-sampleKick+$B8)/64,$0D
   .db $0F,$00,(sampleSnare2-sampleKick+$B8)/64,$20
   
   .db $0F,$00,(sampleScratch-sampleKick+$B8)/64,$1D
