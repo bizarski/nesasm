@@ -1,5 +1,5 @@
-  .inesprg 8   ; 4x 16KB PRG code (banks 0, 1, 2, 3); UNROM has 4 or 8 banks
-  .ineschr 1   ; 1x  8KB CHR data (bank 4)
+  .inesprg 16  ; UOROM
+  .ineschr 0   ; 1x  8KB CHR data (bank 4)
   .inesmap 2   ; mapper 0 = NROM, no bank swapping; 2 = UNROM
   .inesmir 1   ; background mirroring
 
@@ -28,7 +28,7 @@
 	.org LOAD_ADDRESS_BANK_3
   incbin "NSFs/6_7.nsf"
 
-	.bank 6 ; (4/4 last bank/fixed) $C000
+	.bank 6 
 	.org LOAD_ADDRESS_BANK_4
   incbin "NSFs/8_9.nsf"
 
@@ -45,6 +45,20 @@
   incbin "NSFs/13.nsf"
 	
 	.bank 14
+	
+	.bank 16
+	
+	.bank 18
+	
+	.org $8000
+chrdata: 
+  .incbin "ed.chr"  
+  
+    .bank 20 
+    .org $8000
+  .include "bg-stage.asm"
+	
+	.bank 30
   
 	.org $C000
   
@@ -104,6 +118,8 @@ cd2:
   
 ;;;;;;
   
+  JSR LoadCHRAM
+  
   LDA #$00
   STA playingSongNumber
   STA samplePointer
@@ -127,12 +143,14 @@ cd2:
   STA frameTimeout
 
   STA animationClock
-
+  
+  
   LDA #%10010000 ;enable NMI, sprites from Pattern 0, background from Pattern 1
   STA $2000
 
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
+
 
 ;;;;;;;;;;;;;
 
@@ -140,9 +158,10 @@ Forever:
   JMP Forever     ;jump back to Forever, infinite loop
 
 ;;;;;;;;;;;;;;;
-
+   
    
 NMI:
+
   LDA #$00
   STA $2003       ; set the low byte (00) of the RAM address
   LDA #$04
@@ -866,8 +885,8 @@ bgpalette11:
 bgpalette13:
   .incbin "bg13.pal"
 
-banktable:              ; Write to this table to switch banks.
-  .byte $00, $00, $00, $01, $01, $02, $02, $03, $03, $04, $05, $05, $06
+  .include "inc/banktable.asm"
+
 trackNumberInBankTable:
   .byte $00, $01, $02, $00, $01, $00, $01, $00, $01, $00, $00, $01, $00
 
@@ -885,10 +904,34 @@ heroFreddy:
 ;;;;;;;;;;;;;;;;;;;;
 
 
-  .bank 15 ; (4/4 last bank/fixed) $E000
+  .bank 31 ; (4/4 last bank/fixed) $E000
   .org $E000
 
   .include "inc/sprites.asm"
+
+LoadCHRAM:
+  LDY #$00
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the banktable
+  STA otherbanks, y
+  
+  LDA #low(chrdata)
+  STA pointerLo
+  LDA #HIGH(chrdata)  ; LOAD THE SOURCE ADDRESS INTO A POINTER IN ZERO PAGE
+  STA pointerHi
+  
+  STY $2006             ; write the high byte of $2000 address
+  STY $2006             ; write the low byte of $2000 address
+  LDX #32      ; NUMBER OF 256-BYTE PAGES TO COPY
+chramloop:
+  LDA [pointerLo], Y					; load data using indirect indexed addressing (Y must be used in this mode)
+  STA $2007							; write to PPU
+  INY
+  BNE chramloop  ; branch when Y reaches $FF = 255 (255 bytes have been loaded).
+  INC pointerHi						; move offset to next 256-byte block of memory
+  DEX								; increment X now that the first of four blocks of 256 bytes is done
+  BNE chramloop	; when X=$04, 4 rounds of 256 are complete for a full 1024 bytes read.
+  RTS
 
 LoadSprites:
   LDX #$00
@@ -926,7 +969,6 @@ LoadMenuBackground:
   JSR LoadNametable
   RTS 
 
-  .include "bg-stage.asm"
   .include "inc/backgrounds.asm"
   
 menu_background:
@@ -941,12 +983,5 @@ menu_background:
                    ;to the label RESET:
   .dw 0          ;external interrupt IRQ is not used in this tutorial
 
-;;;;;;;;;;;;;;  
-  
-  
-  .bank 16
-  .org $0000
-  .incbin "ed.chr"   ;includes 8KB graphics file from SMB1 
-  
 ;;;;;;;;;;;;;;;;;;;;;;;
 

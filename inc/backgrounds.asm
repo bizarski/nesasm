@@ -1,5 +1,10 @@
 
 LoadSong1Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+
   JSR LoadNametableHUD
   LDA #low(track1title)
   STA pointerLo       ; put the low byte of the address of background into pointer
@@ -21,6 +26,11 @@ LoadSong1Background:
   RTS 
  
 LoadSong2Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+  
   JSR LoadNametableHUD
   
   JSR LoadBlueLine
@@ -66,6 +76,11 @@ LoadSong2Background:
   RTS 
  
 LoadSong3Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+  
   JSR LoadNametableHUD
   LDA #low(track3title)
   STA pointerLo       ; put the low byte of the address of background into pointer
@@ -93,9 +108,12 @@ LoadSong3Background:
   RTS 
   
 LoadSong4Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+  
   JSR LoadNametableHUD
-  
-  
   
   LDA #low(track4body)
   STA pointerLo       ; put the low byte of the address of background into pointer
@@ -152,6 +170,11 @@ LoadSong4Background:
   RTS 
 
 LoadSong5Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+  
   JSR LoadNametableHUD
   
   JSR LoadBlueLine
@@ -209,6 +232,11 @@ LoadSong5Background:
   RTS 
 
 LoadSong6Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+  
   LDA $2002             ; read PPU status to reset the high/low latch
   LDA #$20
   STA $2006             ; write the high byte of $2000 address
@@ -244,6 +272,11 @@ LoadSong6Background:
   RTS 
 
 LoadSong7Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+  
   JSR LoadNametableHUD
   
   JSR LoadBlueLine
@@ -292,6 +325,11 @@ LoadSong7Background:
   RTS 
 
 LoadSong8Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+  
   JSR LoadNametableHUD
 
   JSR LoadBlackLine
@@ -369,6 +407,11 @@ LoadSong8Background:
   RTS 
   
 LoadSong9Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+  
   JSR LoadNametableHUD
 
   LDA #low(track9title)
@@ -397,6 +440,11 @@ LoadSong9Background:
   RTS 
   
 LoadSong10Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+  
   LDA $2002             ; read PPU status to reset the high/low latch
   LDA #$20
   STA $2006             ; write the high byte of $2000 address
@@ -450,6 +498,11 @@ LoadSong10Background:
   RTS 
   
 LoadSong11Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+  
   JSR LoadNametableHUD
   LDA #low(track11title)
   STA pointerLo       ; put the low byte of the address of background into pointer
@@ -548,6 +601,10 @@ LoadSong11Background:
   RTS 
   
 LoadSong12Background: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
 
   LDA $2002             ; read PPU status to reset the high/low latch
   LDA #$20
@@ -619,6 +676,10 @@ DontResetLetters:
   RTS 
 
 LoadSong13Background: 
+  ; bankswitch
+  LDA #$0A
+  STA $8000
+  
   LDA $2002             ; read PPU status to reset the high/low latch
   LDA #$20
   STA $2006             ; write the high byte of $2000 address
