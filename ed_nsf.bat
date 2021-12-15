@@ -1,2 +1,2 @@
-NESASM3 ed.asm -s
+NESASM3 ed02.asm -s
 pause

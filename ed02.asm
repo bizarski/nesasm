@@ -16,47 +16,61 @@
 
     
 	.code
-	.bank 0	; 1/4 8k-9999
-	.org LOAD_ADDRESS_BANK_1
-  incbin "NSFs/1_2_3.nsf"
 
-	.bank 2	; 2/4 8k-9999
-	.org LOAD_ADDRESS_BANK_2
-  incbin "NSFs/4_5.nsf"
-
-	.bank 4	; 3/4 8k-9999
-	.org LOAD_ADDRESS_BANK_3
-  incbin "NSFs/6_7.nsf"
-
-	.bank 6 
-	.org LOAD_ADDRESS_BANK_4
-  incbin "NSFs/8_9.nsf"
-
-    .bank 8
-	.org LOAD_ADDRESS_BANK_5
-  incbin "NSFs/10.nsf"
-	
-	.bank 10
-	.org LOAD_ADDRESS_BANK_6
-  incbin "NSFs/11_12.nsf"
-	
-	.bank 12
-	.org LOAD_ADDRESS_BANK_7
-  incbin "NSFs/13.nsf"
-	
-	.bank 14
-	
-	.bank 16
-	
-	.bank 18
-	
+	.bank 0	; C	
 	.org $8000
 chrdata: 
   .incbin "ed.chr"  
   
-    .bank 20 
+    .bank 2 	; D
     .org $8000
   .include "bg-stage.asm"
+
+	.bank 4	; 2
+	.org LOAD_ADDRESS_BANK_1
+  incbin "NSFs/1_2.nsf"
+
+	.bank 6	; 3
+	.org LOAD_ADDRESS_BANK_2
+  incbin "NSFs/3.nsf"
+
+	.bank 8	; 4
+	.org LOAD_ADDRESS_BANK_3
+  incbin "NSFs/4.nsf"
+
+	.bank 10 ; 5
+	.org LOAD_ADDRESS_BANK_4
+  incbin "NSFs/5.nsf"
+
+    .bank 12 ; 6
+	.org LOAD_ADDRESS_BANK_5
+  incbin "NSFs/6_7.nsf"
+	
+	.bank 14	; 7
+	.org LOAD_ADDRESS_BANK_6
+  incbin "NSFs/8.nsf"
+	
+	.bank 16	; 8
+	.org LOAD_ADDRESS_BANK_7
+  incbin "NSFs/9.nsf"
+	
+	.bank 18	; 9
+	.org LOAD_ADDRESS_BANK_8
+  incbin "NSFs/10.nsf" 
+	
+	.bank 20	; A
+	.org LOAD_ADDRESS_BANK_9
+  incbin "NSFs/11.nsf"
+	
+	.bank 22	; B
+	.org LOAD_ADDRESS_BANK_10
+  incbin "NSFs/12.nsf"
+	
+	.bank 24 	; C
+	.org LOAD_ADDRESS_BANK_11
+  incbin "NSFs/13.nsf"
+	
+	.bank 26	; D
 	
 	.bank 30
   
@@ -886,9 +900,6 @@ bgpalette13:
   .incbin "bg13.pal"
 
   .include "inc/banktable.asm"
-
-trackNumberInBankTable:
-  .byte $00, $01, $02, $00, $01, $00, $01, $00, $01, $00, $00, $01, $00
 
 heroSparx: 
   .byte $00, $19, $7C

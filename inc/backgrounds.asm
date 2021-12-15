@@ -676,9 +676,10 @@ DontResetLetters:
   RTS 
 
 LoadSong13Background: 
+  LDY #$01
   ; bankswitch
-  LDA #$0A
-  STA $8000
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
   
   LDA $2002             ; read PPU status to reset the high/low latch
   LDA #$20

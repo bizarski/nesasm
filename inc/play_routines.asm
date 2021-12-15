@@ -133,3 +133,5 @@ songPalettesHB:
   .db HIGH(bgpalette9), HIGH(bgpalette), HIGH(bgpalette11), HIGH(bgpalette)
   .db HIGH(bgpalette13) 
   
+trackNumberInBankTable:
+  .byte $00, $01, $00, $00, $00, $00, $01, $00, $00, $00, $00, $00, $00
