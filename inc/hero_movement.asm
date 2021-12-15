@@ -303,8 +303,8 @@ PlaySampleA:
   BEQ DontSayWoo 
   
   LDA NOISE_RAM
-  CMP #$13
-  BCS DontSayWoo
+  CMP #$1D
+  BNE DontSayWoo
 
   JSR SayWoo
 	
@@ -329,10 +329,9 @@ PlaySampleB:
   BEQ DontSayWoo2 
   
   LDA NOISE_RAM
-  CMP #$13
-  BCC DontSayWoo2
-  CMP #$19
-  BCS DontSayWoo2
+  CMP #$1C
+  BNE DontSayWoo2
+
   JSR SayWoo
 DontSayWoo2:
   LDA samplePointer
