@@ -146,7 +146,6 @@ cd2:
   STA highScore+1					; reset score
   
   JSR LoadSongPalette
-  JSR LoadMenuBackground
   JSR LoadSprites  
   
   LDA #TRACK_1
@@ -158,14 +157,14 @@ cd2:
 
   STA animationClock
   
-  
   LDA #%10010000 ;enable NMI, sprites from Pattern 0, background from Pattern 1
   STA $2000
 
+  JSR LoadMenuBackground
+
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
-
-
+  
 ;;;;;;;;;;;;;
 
 Forever:
@@ -840,7 +839,7 @@ Bleep:
   lda #%00000001
   sta $4015
   ; square 1
-  LDA #%10000111
+  LDA #%10110100
   STA $4000
   ; sweep   
   LDA #%10001001
