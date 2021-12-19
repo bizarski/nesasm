@@ -309,9 +309,17 @@ PlaySampleA:
   JSR SayWoo
 	
 DontSayWoo: 
-
-  LDA samplePointer
-  JSR PlaySample
+  LDA soundFlags
+  EOR #SAMPLE_PLAYED
+  STA soundFlags
+  
+  
+  LDX samplePointer
+  LDY sampleTable, x
+  LDA $0200, y
+  CLC
+  ADC #$01
+  STA $0200, y
 DontPlaySampleA: 
   RTS
 
@@ -334,10 +342,16 @@ PlaySampleB:
 
   JSR SayWoo
 DontSayWoo2:
-  LDA samplePointer
-  CLC
-  ADC #$01
-  JSR PlaySample
+  LDA soundFlags
+  EOR #SAMPLE_PLAYED
+  STA soundFlags
+
+  LDX samplePointer
+  LDY sampleTable, x
+  LDA $0200, y
+  SEC
+  SBC #$01
+  STA $0200, y
 DontPlaySampleB: 
   RTS
 
@@ -358,8 +372,8 @@ StoreInventoryChange:
 UpdateSamplePointer:
   LDA samplePointer
   CLC 
-  ADC #$02
-  CMP #$08
+  ADC #$01
+  CMP #$04
   BNE StoreSamplePointer
   LDA #$00
 StoreSamplePointer:
@@ -390,7 +404,27 @@ SpritesBop:
   JSR SayWoo
 
 DontSayWoo3:
-  LDA #$08
-  JSR PlaySample
+  JSR DoGlitch
+    LDA     #$0F
+    STA     $4010                   ; write sample frequency
+	
+    LDA     #$00
+    STA     $4011                   ; write initial delta value
+	
+    LDA     (sampleHey+$B8)/64
+    STA     $4012                   ; write sample address
+	
+    LDA     #$42
+    STA     $4013                   ; write sample length
+	
+	LDA     #$0F
+    STA     $4015                   ; turn bit 4 off...
+	
+    LDA     #$1F
+    STA     $4015                   ; ... then on again
+	LDA soundFlags
+	EOR #SAMPLE_PLAYED
+	STA soundFlags
+  
 DontPlayHey: 
   JMP ActionsReactDone

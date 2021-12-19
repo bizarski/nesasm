@@ -73,32 +73,10 @@ InitTrackFromBank:
 	JMP GameEngineDone
 ;
 
-PlaySample: 
-    ASL A
-    ASL A
-    TAY
-	
-    LDA     dmc_sample_table+0,y
-    STA     $4010                   ; write sample frequency
-	
-    LDA     dmc_sample_table+1,y
-    STA     $4011                   ; write initial delta value
-	
-    LDA     dmc_sample_table+2,y
-    STA     $4012                   ; write sample address
-	
-    LDA     dmc_sample_table+3,y
-    STA     $4013                   ; write sample length
-	
-	LDA     #$0F
-    STA     $4015                   ; turn bit 4 off...
-	
-    LDA     #$1F
-    STA     $4015                   ; ... then on again
-	
+DoGlitch: 
 	LDA playingSongNumber  
     CMP #$03
-    BNE SkipGlitch1
+    BNE SkipGlitch
 	
     LDA xpos  
 	CLC
@@ -109,28 +87,12 @@ PlaySample:
 	CLC
 	ADC KICK_RAM
 	LDX animationClock
-	STA $027C, x 
+	STA $0292, x 
 	
 	LDA counter  
 	STA $2006           
     STA $2006          
     STA $2007          
 	
-SkipGlitch1:
-    LDA playingSongNumber  
-	CMP #$0B
-    BNE SkipGlitch2
-
-    LDA xpos  	
-	SBC samplePointer
-	SBC (SPRATZ_RAM+3)
-	LDX animationClock
-	STA $0200, x 
-
-SkipGlitch2: 
-	
-	LDA soundFlags
-	EOR #SAMPLE_PLAYED
-	STA soundFlags
-
+SkipGlitch:
     RTS
