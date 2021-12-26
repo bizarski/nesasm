@@ -190,7 +190,7 @@ pill_CheckHitHero:
 PlayerHit: 
   JSR DecrementLivesDisplay
   LDA playerLives 
-  CMP #$FF 
+  CMP #$FF   
   BNE SkipGameOver
 
   LDX currentHero
@@ -209,7 +209,8 @@ PlayerHit:
   JSR Bloop
 
   JMP GameEngineDone
-SkipGameOver: 
+SkipGameOver:
+  JSR MakeOops 
   JSR ResetHeroHitFlag  
   JMP EnginePlaying_SongAndAudio
 
@@ -389,6 +390,10 @@ DecrementLivesDisplayDone:
 OnError: 
   JSR SetSamplePlayedFlag
   JSR DecrementScoreDisplay
+  JSR MakeOops
+  RTS
+
+MakeOops:
   LDX currentHero
   LDA heroOopsSprites, x
   STA (HERO_RAM+1+4*2)
@@ -409,6 +414,10 @@ OnBeat:
   STA hitBeatTimeout
   LDA #$00
   STA nextFrame3
+  LDA #$32
+  STA (HERO_RAM+1+4*4)
+  LDA #$10
+  STA faceTimeout
   RTS 
 
 ;;;;;;; button A 
