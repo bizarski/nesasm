@@ -265,7 +265,7 @@ EnginePlaying:
   CMP #$09 ; song is Red Pilled, no coins nor tomatoes there
   BEQ EnginePlaying_SkipObjs
   
-  JSR AnimateObjs
+ ; JSR AnimateObjs
   
   JMP SpratzCheckObjHit
 EnginePlaying_SpratzCheckObjHitDone:
@@ -368,6 +368,7 @@ EnginePlaying_SkipMusic:
 EnginePlaying_GoToInitTrack: 
   JMP InitTrack
 EnginePlaying_SongFinished: 
+  JSR MarkSongAsFinished
   JMP PlayingSelectPressed
 
 EnginePlaying_ResetBeatFlag: 
@@ -420,6 +421,9 @@ ShowElmo:
   JSR ShowMetaSpriteX
   LDA #SPRITE_ELM_Y
   JSR ShowMetaSpriteY
+  LDX #LOW(ELMO_RAM)
+  LDA #$04
+  JSR ChangeElmoTiles
 ShowAldo: 
   LDX #LOW(ALDO_RAM)
   LDA #SPRITE_ALDO_X
@@ -428,6 +432,23 @@ ShowAldo:
   JSR ShowMetaSpriteY
 ShowGuin:
   JSR ShowGuiness
+ShowBass:
+  LDX #LOW(BASS_RAM)
+  LDA #$3E
+  JSR ShowGuitX
+  
+  LDX #LOW(BASS_RAM)
+  LDA #$2A
+  JSR ChangeGuitTiles  
+ShowGuitars: 
+  LDX #LOW(GUITAR_RAM)
+  LDA #$B3
+  JSR ShowGuitX
+  
+  LDX #LOW(GUITAR_RAM)
+  LDA #$0A
+  JSR ChangeGuitTiles  
+
 ShowCymbals: 
   LDX #LOW(CYMBALS_RAM)
   LDA #SPRITE_CYM_X
@@ -533,7 +554,55 @@ ChangeHeroTiles:
   STA ($0400+1+4*2), x
   ADC #$01
   STA ($0400+1+4*3), x
+  LDA #$20
+  STA ($0400+1+4*4), x
+  ADC #$01
+  STA ($0400+1+4*5), x
+ChangeHeroTilesEnd:
   RTS 
+
+ChangeElmoTiles: 
+  STA ($0400+1), x
+  CLC
+  ADC #$01
+  STA ($0400+1+4), x
+  ADC #$0F
+  STA ($0400+1+4*2), x
+  ADC #$01
+  STA ($0400+1+4*3), x
+  ADC #$0F
+  STA ($0400+1+4*4), x
+  ADC #$01
+  STA ($0400+1+4*5), x
+ChangeElmoTilesEnd:
+  RTS 
+
+ChangeGuitTiles: 
+  STA ($0400+1), x
+  CLC
+  ADC #$01
+  STA ($0400+1+4), x
+  ADC #$01
+  STA ($0400+1+4*2), x
+  ADC #$0E
+  STA ($0400+1+4*3), x
+  ADC #$01
+  STA ($0400+1+4*4), x
+  ADC #$01
+  STA ($0400+1+4*5), x
+  RTS
+
+ShowGuitX: 
+  STA ($0400+3), x
+  STA ($0400+3+4*3), x
+  CLC 
+  ADC #$08
+  STA ($0400+3+4), x
+  STA ($0400+3+4*4), x
+  ADC #$08
+  STA ($0400+3+4*2), x
+  STA ($0400+3+4*5), x
+  RTS
 
 ReadController1:
   LDA #$01
@@ -671,8 +740,6 @@ ResetHeroHead:
   LDA heroDefaultSprites, x
   LDX #LOW(HERO_RAM)
   JSR ChangeHeroTiles
-  LDA #$21
-  STA (HERO_RAM+1+4*5)
 ResetHeroHeadDone:
   RTS 
 
@@ -752,6 +819,18 @@ goto_FinishPlayTrack:
 
 ;;;;;;;;;;
 
+MarkSongAsFinished:
+  LDX playingSongNumber
+  LDA completionMap, x
+  CPX #$09
+  BCC storeProgressIn1
+  ORA (completionFlags+1)
+  STA (completionFlags+1)
+storeProgressIn1: 
+  ORA completionFlags
+  STA completionFlags
+  RTS
+
 DisplayLives:
   LDA playerLives
   CMP #99
@@ -782,7 +861,8 @@ DisplayLivesDone:
 PlayingSelectPressed:
   JSR ResetPPU
   JSR HideAllSprites
-  
+  JSR ShowIndicatorSprites
+    
   LDA #$00
   STA pointerLo
   STA pointerHi
@@ -934,6 +1014,73 @@ StopMovingDown:
   .include "inc/hero_movement.asm"
 
   .include "inc/animations.asm"
+  
+ShowIndicatorSprites: 
+  LDX #$00
+BigIndicatorLoop:
+ShowIndicatorLoop: 
+  LDA #$2F
+  STA (BASS_RAM+1), x
+  INX
+  INX
+  INX
+  INX
+  CPX #$34
+  BNE ShowIndicatorLoop
+  LDA #(TRACK_1-1)
+  LDX #$00
+ShowIndicatorLoop2: 
+  STA BASS_RAM, x
+  ADC #$08
+  INX
+  INX
+  INX
+  INX
+  CPX #$34
+  BNE ShowIndicatorLoop2
+  LDX #$00
+  LDA #$CF
+ShowIndicatorLoop3: 
+  STA (BASS_RAM+3), x
+  INX
+  INX
+  INX
+  INX
+  CPX #$34
+  BNE ShowIndicatorLoop3
+
+  LDY #$01
+  LDX #$00
+  
+HideIndicatorLoop: 
+  LDA completionMap, y
+  STA tmp
+  LDA playingSongNumber
+  CPY #$09
+  BCC CheckCompletionIn1
+  LDA tmp
+  BIT (completionFlags+1)
+  BEQ HideCheckbox
+  JMP CheckHideEnd
+CheckCompletionIn1: 
+  LDA tmp
+  BIT completionFlags
+  BEQ HideCheckbox
+  JMP CheckHideEnd
+HideCheckbox: 
+  LDA #$F0
+  STA BASS_RAM, x
+  JMP CheckHideEnd
+CheckHideEnd: 
+  INY
+  INX
+  INX
+  INX
+  INX
+  CPY #$14
+  BNE HideIndicatorLoop
+  
+  RTS 
   
 Bleep:
   ; enable channel

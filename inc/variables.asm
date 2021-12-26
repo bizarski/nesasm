@@ -22,6 +22,7 @@ currentHero     .rs 1
   
 gameFlags       .rs 1  ; xxxx1111
 soundFlags      .rs 1  ; xxxxx111
+completionFlags .rs 2  ; xxx11111 11111111
 
 playerLives		.rs 1
 playerScore     .rs 2
