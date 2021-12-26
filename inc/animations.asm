@@ -1,3 +1,17 @@
+AdvanceXPos: 
+  LDA xpos 
+  CLC 
+  ADC #$08 
+  ADC (HERO_RAM+3)/10
+  SBC counter/10
+  CMP #$B8
+  BCC DontResetXPos
+  LDA #$40
+DontResetXPos: 
+  STA xpos
+  INC counter
+  RTS 
+
 StartClock: 
   LDA frameTimeout
   BEQ SkipFrameTimeoutUpdate
@@ -10,13 +24,25 @@ SkipFrameTimeoutUpdate:
 DontResetAnimationClock:
   SEC 
   SBC #$01
-  STA animationClock
+  STA animationClock  
+FlashTimeoutClock: 
+  LDA hitBeatTimeout
+  BEQ BufferTimeoutClock
+  DEC hitBeatTimeout
+BufferTimeoutClock: 
+  LDA bufferTimeout
+  BEQ FaceTimeoutClock
+  DEC bufferTimeout
+FaceTimeoutClock: 
+  LDA faceTimeout
+  BEQ EndClock
+  DEC faceTimeout
+EndClock: 
   RTS 
 
 AdvanceAnimationFrame:
   LDA frameTimeout
   BNE DontChangeFrame
-  LDX #$00
   LDA nextFrame
   CMP #$03 
   BNE DontResetFrame
@@ -24,33 +50,23 @@ AdvanceAnimationFrame:
   STA nextFrame
 DontResetFrame:
   CLC 
-  ADC #$01 
-  STA nextFrame
+  INC nextFrame
   LDA #$05
   STA frameTimeout
+ResetFrame3: 
+  LDA nextFrame3
+  CMP #$03 
+  BEQ DontChangeFrame
+  INC nextFrame3
 DontChangeFrame:   
-  RTS 
-
-
-AnimateWoo: 
-  LDX nextFrame
-  LDA animWoo, x
-  STA (WOO_RAM+2)     ; attributes
-  STA (WOO_RAM+2+4)
-  STA (WOO_RAM+2+4*2)
-  STA (WOO_RAM+2+4*3)
-  DEC (WOO_RAM)
-  DEC (WOO_RAM+4)
-  DEC (WOO_RAM+4*2)
-  DEC (WOO_RAM+4*3)
   RTS 
 
 AnimateWalk: 
   LDX nextFrame
   LDA animLegsLeft, x
-  STA (SPRATZ_RAM+4*6+1)
+  STA (HERO_RAM+4*6+1)
   LDA animLegsRight, x
-  STA (SPRATZ_RAM+4*6+1+4)
+  STA (HERO_RAM+4*6+1+4)
   RTS 
 
 AnimateGuitars: 
@@ -124,6 +140,8 @@ CymbalsChangeFrame:
   STA (CYMBALS_RAM+1+4*3)
   RTS 
  
+;;;;;;;;;
+ 
 AnimateUFO: 
   LDA (UFO_RAM+3)
   CMP #$F0					; check UFO horizontal position
@@ -172,19 +190,30 @@ SkipResetUFO:
   INC (UFO_RAM+4+3)
   INC (UFO_RAM+4+3)
 SkipUFO:
-  RTS 
-  
-  
- 
-DelaySpawnBluePill:
+  RTS  
+
+;;;;;;;;;;;;;;;;; blue pill
+
+DelaySpawnBluePill: 
+  LDA BLUEPILL_RAM
+  CMP #$C0
+  BEQ BluePillDrop
+  ; not #$C0, meaning player made a hit on the beat 
+  LDX nextFrame3
+  LDA animPillDeath, x
+  STA (BLUEPILL_RAM+1)
+  CLC
+  ADC #$10
+  STA (BLUEPILL_RAM+5)
+  LDA hitBeatTimeout
+  CMP #$01
+  BNE SkipFall
+BluePillDrop: 
   LDA #$F0
   STA (BLUEPILL_RAM+0)
   STA (BLUEPILL_RAM+4)
-  LDA (KICK_RAM+4)
-  CMP #$A0 
-  BCS DontDelay
-  JMP SkipFall
-;;;;;;;;;;;;;;;;;
+  JMP DontDelay 
+
 InitializeXPosition: 
   LDA xpos
   STA (BLUEPILL_RAM+3)
@@ -201,8 +230,9 @@ AnimatePills:
   LDA BLUEPILL_RAM
   CMP #$C0
   BEQ b_DelaySpawn
-  CMP #$F0
-  BEQ b_DelaySpawn
+  LDA hitBeatTimeout
+  CMP #$00
+  BNE b_DelaySpawn ; not equal to 0, means player hit on the beat 
 DontDelay:
   LDA BLUEPILL_RAM
   CMP #$F0
@@ -211,7 +241,11 @@ b_PillInitX:
   LDA BLUEPILL_RAM
   CMP #$44
   BEQ InitializeXPosition
-b_PillMove:
+b_PillMove: 
+  LDA #$5C
+  STA (BLUEPILL_RAM+1)
+  LDA #$6C
+  STA (BLUEPILL_RAM+5)
   LDA BLUEPILL_RAM
   CLC
   ADC #$01
@@ -223,6 +257,8 @@ SkipFall:
   
 b_DelaySpawn:
   JMP DelaySpawnBluePill
+  
+;;;;;;;;;;;;;;; Red Pill 
   
 DelaySpawnRedPill: 
   LDA #$F0
@@ -284,57 +320,105 @@ SkipFallRedPill:
 r_DelaySpawn:
   JMP DelaySpawnRedPill
   
-DelaySpawnCoin: 
-  LDA #$F0
-  STA (COIN_RAM+0)
-  LDA (KICK_RAM)
-  CMP #$C0 
-  BCS DontDelayCoin
-  JMP SkipFallCoin
+;;;;;;;;;;;;;;; coin / tomato
   
-InitializeXPositionCoin:     
+DelaySpawnObj: 
+  LDA OBJ_RAM
+  CMP #$C0
+  BEQ ObjDrop
+  ; not #$C0, meaning player made a hit on the beat 
+  LDX nextFrame3
+  LDA animObjDeath, x
+  STA (OBJ_RAM+1)
+  LDA hitBeatTimeout
+  CMP #$01
+  BNE SkipFallObj
+ObjDrop: 
+  LDA #$F0
+  STA OBJ_RAM
+  JMP DontDelayObj 
+  
+InitializeXPositionObj:     
   LDA xpos
-  STA (COIN_RAM+3)
-  JMP c_CoinMove
+  STA (OBJ_RAM+3)
+  JMP c_ObjMove
 
-InitializeYPositionCoin:     
+InitializeYPositionObj:     
   LDA #$44
-  STA (COIN_RAM+0)
-  JMP c_CoinInitX
+  STA (OBJ_RAM+0)
+  JMP c_ObjInitX
 
 c_SkipFall: 
-  JMP SkipFallCoin
+  JMP SkipFallObj
 
-AnimateCoins: 
-  LDA COIN_RAM
+AnimateObjs: 
+  LDA OBJ_RAM
   CMP #$C0
   BEQ c_DelaySpawn
+  LDA currentSong
+  CMP #TRACK_4
+  BEQ DontDelayObj ; don't check for beat hit 
+  LDA hitBeatTimeout
+  CMP #$00
+  BNE c_DelaySpawn
+DontDelayObj:
+  LDA OBJ_RAM
   CMP #$F0
-  BEQ c_DelaySpawn
-DontDelayCoin:
-  LDA COIN_RAM
-  CMP #$F0
-  BEQ InitializeYPositionCoin
-c_CoinInitX:
-  LDA COIN_RAM
+  BEQ InitializeYPositionObj
+c_ObjInitX:
+  LDA OBJ_RAM
   CMP #$44
-  BEQ InitializeXPositionCoin
-c_CoinMove:
+  BEQ InitializeXPositionObj
+c_ObjMove:
 
   LDX nextFrame
+  LDA playingSongNumber
+  CMP #$04
+  BEQ PutCoins
+  CMP #$0B
+  BEQ PutBottles
+  LDA #%00000010
+  STA (OBJ_RAM+2)
+  LDA animTomatos, x
+  JMP StorePatternInRam
+PutCoins: 
+  LDA #%00000000
+  STA (OBJ_RAM+2)
   LDA animCoins, x
-  STA (COIN_RAM+1)
-
-  INC COIN_RAM
-SkipFallCoin:
-
+  JMP StorePatternInRam
+PutBottles: 
+  LDA #%00000001
+  STA (OBJ_RAM+2)
+  LDA animBottles, x
+StorePatternInRam:
+  STA (OBJ_RAM+1)
+  INC OBJ_RAM
+  LDA currentSong
+  CMP #TRACK_10
+  BNE SkipFallObj
+  INC OBJ_RAM
+SkipFallObj:
   RTS
-  
+    
 c_DelaySpawn: 
-  JMP DelaySpawnCoin
+  JMP DelaySpawnObj
+
+;;;;;;;;;;;;; animation tables 
 
 animCoins: 
   .db $5E, $6E, $5E, $6E
+  
+animTomatos: 
+  .db $5F, $6F, $5F, $6F
+  
+animBottles: 
+  .db $47, $47, $47, $57
+  
+animObjDeath:
+  .db $4F, $3F, $3F, $18
+  
+animPillDeath: 
+  .db $5D, $3D, $1D, $18
   
 animLegsLeft: 
   .db $30, $12, $30, $22

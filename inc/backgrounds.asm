@@ -910,6 +910,17 @@ LoadNameTableLoop:
   BNE LoadNameTableLoop	; when X=$04, 4 rounds of 256 are complete for a full 1024 bytes read.
   RTS
   
+  
+ResetScreen: 
+  LDA #$00
+  STA $2005		; first write: no horizontal scrolling
+  LDA #$02
+  STA $2005		; second write: no vertical scrolling
+  LDA #%10010000 ;enable NMI, sprites from Pattern 0, background from Pattern 1
+  STA $2000
+  
+  RTS
+  
 
 LoadSongPalette: 
   LDA playingSongNumber
@@ -925,8 +936,8 @@ LoadSongPalette:
   STA $2006             
   LDY #$00             
 LoadPalettesLoop:
-  LDA [pointerLo], y				
-  STA $2007							
+  LDA [pointerLo], y	
+  STA $2007	
   INY
   CPY #$10
   BNE LoadPalettesLoop 
@@ -946,3 +957,4 @@ LoadPalettes2Loop:
   BNE LoadPalettes2Loop 
   
   RTS  
+  

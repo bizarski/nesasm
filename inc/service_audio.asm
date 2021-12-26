@@ -96,38 +96,8 @@ PlaySample:
     LDA     #$1F
     STA     $4015                   ; ... then on again
 	
-	LDA playingSongNumber  
-    CMP #$03
-    BNE SkipGlitch1
-	
-    LDA xpos  
-	CLC
-	ADC NOISE_RAM
-	SBC samplePointer
-	TAX
-	LDA xpos 
-	CLC
-	ADC KICK_RAM
-	LDX animationClock
-	STA $027C, x 
-	
-	LDA counter  
-	STA $2006           
-    STA $2006          
-    STA $2007          
-	
-SkipGlitch1:
-    LDA playingSongNumber  
-	CMP #$0B
-    BNE SkipGlitch2
-
-    LDA xpos  	
-	SBC samplePointer
-	SBC (SPRATZ_RAM+3)
-	LDX animationClock
-	STA $0200, x 
-
-SkipGlitch2: 
+    
+SetSamplePlayedFlag: 
 	
 	LDA soundFlags
 	EOR #SAMPLE_PLAYED

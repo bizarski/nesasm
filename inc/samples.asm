@@ -1,6 +1,6 @@
 
 sampleKick: 
-  .incbin "dmc/TMNT2_$C2C0.dmc"
+  .incbin "dmc/Kick.dmc"
 
 sampleSnare: 
   .incbin "dmc/1SN00019.dmc"
@@ -12,7 +12,7 @@ sampleHandDrum:
   .incbin "dmc/Twinbee3_$C300.dmc"  
   
 sampleKick3: 
-  .incbin "dmc/Recca_$C000.dmc"
+  .incbin "dmc/1BD00020.dmc"
   
 sampleSnare2: 
   .incbin "dmc/TecmoBowl_$E100.dmc"
@@ -28,16 +28,16 @@ sampleHey:
   .incbin "dmc/TMNT3_$E300.dmc"
   
 dmc_sample_table:
-  .db $0F,$00,(sampleKick-sampleKick+$B8)/64,$09
-  .db $0F,$00,(sampleSnare-sampleKick+$B8)/64,$1F
+  .db $0F,$00,(sampleKick-sampleKick)/64,$09
+  .db $0F,$00,(sampleSnare-sampleKick)/64,$1F
   
-  .db $0F,$00,(sampleCowbell-sampleKick+$B8)/64,$12
-  .db $0F,$00,(sampleHandDrum-sampleKick+$B8)/64,$12
+  .db $0F,$00,(sampleCowbell-sampleKick)/64,$12
+  .db $0F,$00,(sampleHandDrum-sampleKick)/64,$12
   
-  .db $0F,$00,(sampleKick3-sampleKick+$B8)/64,$0D
-  .db $0F,$00,(sampleSnare2-sampleKick+$B8)/64,$20
+  .db $0F,$00,(sampleKick3-sampleKick)/64,$0D
+  .db $0F,$00,(sampleSnare2-sampleKick)/64,$20
   
-  .db $0F,$00,(sampleScratch-sampleKick+$B8)/64,$1D
-  .db $0F,$00,(sampleScratch2-sampleKick+$B8)/64,$22
+  .db $0F,$00,(sampleScratch-sampleKick)/64,$1D
+  .db $0F,$00,(sampleScratch2-sampleKick)/64,$22
   
-  .db $0F,$00,(sampleHey-sampleKick+$B8)/64,$3F
+  .db $0F,$00,(sampleHey-sampleKick)/64,$3F

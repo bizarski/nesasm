@@ -10,16 +10,20 @@ xpos            .rs 1
 counter         .rs 1
 
 nextFrame       .rs 1
+nextFrame3      .rs 1
 frameTimeout    .rs 1
+faceTimeout		.rs 1
+hitBeatTimeout  .rs 1
+bufferTimeout   .rs 1
 animationClock  .rs 1
 
 currentSong     .rs 1
 currentHero     .rs 1
-currentHeroBop  .rs 1
   
-gameFlags       .rs 1  ; xxxxxxx1
+gameFlags       .rs 1  ; xxxx1111
 soundFlags      .rs 1  ; xxxxx111
 
+playerLives		.rs 1
 playerScore     .rs 2
 highScore       .rs 2
 scoreLo         .rs 1

@@ -12,8 +12,7 @@
 
   .include "inc/const.asm"
 
-;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;; banks 
     
 	.code
 
@@ -76,6 +75,10 @@ chrdata:
   
 	.org $C000
   
+  .include "inc/samples.asm" ; 55 55 55 95 AA 2A 95 E0
+  
+;;;;; reset console params and clear RAM 
+  
 RESET:
   SEI          ; disable IRQs
   CLD          ; disable decimal mode
@@ -105,17 +108,14 @@ clrmem:
   STA $0400, x
   INX
   BNE clrmem
-      
-	  
+
 vblankwait2:      ; Second wait for vblank, PPU is ready after this
   BIT $2002
-  BPL vblankwait2
+  BPL vblankwait2  
   
-  
-;;;;;;;
+;;;;;;; PAL/NTSC recognition 
+;;;;;;; wait for the next NTSC vertical blank (PAL and Dendy would take longer)
 
-
-;wait for the next NTSC vertical blank (PAL and Dendy would take longer)
    LDX #$70
 cd1:
    LDY #$35
@@ -128,9 +128,8 @@ cd2:
    ;detect whether the frame rate is 60Hz or 50Hz
    LDA $2002
    STA frameRateIs60
-
   
-;;;;;;
+;;;;;; initialize memory 
   
   JSR LoadCHRAM
   
@@ -140,11 +139,12 @@ cd2:
   STA gameFlags
   STA soundFlags
   STA xpos
+  STA hitBeatTimeout
   STA playerScore+0
   STA playerScore+1					; reset score
   STA highScore+0
   STA highScore+1					; reset score
-  
+    
   JSR LoadSongPalette
   JSR LoadSprites  
   
@@ -157,7 +157,7 @@ cd2:
 
   STA animationClock
   
-  LDA #%10010000 ;enable NMI, sprites from Pattern 0, background from Pattern 1
+  LDA #%10010000 ; enable NMI, sprites from Pattern 0, background from Pattern 1
   STA $2000
 
   JSR LoadMenuBackground
@@ -165,54 +165,81 @@ cd2:
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
   
-;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 Forever:
-  JMP Forever     ;jump back to Forever, infinite loop
+  JMP Forever     ; jump back to Forever, infinite loop
 
-;;;;;;;;;;;;;;;
-   
+;;;;;;;;;;;;;;;;;;;;;;;;;;
    
 NMI:
 
   LDA #$00
-  STA $2003       ; set the low byte (00) of the RAM address
+  STA $2003       		; set the low byte (00) of the RAM address
   LDA #$04
-  STA $4014       ; set the high byte (02) of the RAM address, start the transfer
+  STA $4014       		; set the high byte (02) of the RAM address, start the transfer
   JSR StartClock
-  JSR ReadController1  ;;get the current button data for player 1
+  JSR ReadController1  	; get the current button data for player 1
   
 GameEngine:  
   LDA playingSongNumber
   CMP #$00
-  BNE GameEngine_NotTitle	; need to use JMP here because relative addressing used by BEQ goes out of range
+  BNE GameEngine_Playing	; need to use JMP here because relative addressing used by BEQ goes out of range
   LDA #HERO_HIT 
   BIT gameFlags
   BNE GameEngine_GameOver
   JMP EngineTitle			; game is displaying title screen
-GameEngine_NotTitle:
+GameEngine_Playing:
   JMP EnginePlaying  
 GameEngine_GameOver: 
   JMP EngineGameOver
 GameEngineDone: 
 
-  RTI             ; return from interrupt
+  RTI
  
-;;;;;;;;;;;;;;  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
   
-; $C0B8
-  .include "inc/samples.asm" ; 55 55 55 95 AA 2A 95 E0
+
+;;;;; audio controls 
 
   .include "inc/service_audio.asm"
 
+;;;;; engine title 
 
 EngineTitle:
   JSR DisplayHighScore
-  JMP EngineTitle_ReactToInput
- 
-;;;;;;;
 
-EngineGameOver: 
+;;;;; react to menu input 
+
+  LDA buttons1 
+  AND #BTN_START
+  BNE EngineTitle_TitleStartPressed 
+  LDA buttons1 
+  AND #BTN_UP
+  BNE EngineTitle_ArrowMoveUp
+  LDA buttons1 
+  AND #BTN_DOWN 
+  BNE EngineTitle_ArrowMoveDown
+  LDA buttons1 
+  AND #%00000000
+  BNE DoNothing 
+  LDA #$00
+  STA buttonlatch
+DoNothing: 
+  JMP GameEngineDone
+ 
+EngineTitle_TitleStartPressed: 
+  JMP TitleStartPressed
+
+EngineTitle_ArrowMoveUp: 
+  JMP ArrowMoveUp
+
+EngineTitle_ArrowMoveDown: 
+  JMP ArrowMoveDown
+ 
+;;;;;;; game over state 
+
+EngineGameOver:   
   LDA buttons1 
   AND #BTN_SELECT
   BNE EngineGameOver_Reset
@@ -225,117 +252,152 @@ EngineGameOver_Reset:
   JSR ResetHeroHitFlag  
   JMP PlayingSelectPressed
   
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; game playing state 
+  
 EnginePlaying:   
-AdvanceXPos: 
-  LDA xpos 
-  CLC 
-  ADC #$08 
-  CMP #$B8
-  BCC DontResetXPos
-  LDA #$40
-DontResetXPos: 
-  STA xpos
-  INC counter
-
-  JSR AdvanceAnimationFrame 
-  JSR AnimateGuitars
-  JSR AnimateCymbals
   
-  LDA playingSongNumber  
-  CMP #$04
-  BNE EnginePlaying_SkipCoins
+  JSR AdvanceXPos 				; pills and objects random position
+  JSR AdvanceAnimationFrame 	; for all animations 
   
-  JSR AnimateCoins
-  JMP SpratzCheckBonus2
-SpratzCheckBonus2Done:
-  LDA #HERO_HIT 
-  BIT gameFlags
-  BNE PlayerBonus
-  
-EnginePlaying_SkipCoins: 
+;;;;;;;; coins and tomatoes animation and hit detection 
 
   LDA playingSongNumber  
-  CMP #$07
+  CMP #$09 ; song is Red Pilled, no coins nor tomatoes there
+  BEQ EnginePlaying_SkipObjs
+  
+  JSR AnimateObjs
+  
+  JMP SpratzCheckObjHit
+EnginePlaying_SpratzCheckObjHitDone:
+
+  LDA playingSongNumber  
+  CMP #$04 ; song is not High Stakes - no bonus 
+  BNE EnginePlaying_SkipObjs
+
+  JSR CheckPlayerBonusFlag
+
+EnginePlaying_SkipObjs: 
+
+;;;;;;; UFO 
+
+  LDA playingSongNumber  
+  CMP #$07 ; song is not Systematic Chaos - no UFO
   BNE EnginePlaying_SkipUFO
   
   JSR AnimateUFO
   
 EnginePlaying_SkipUFO:
   
+;;;;;;; pills and hit detection  
+  
   LDA playingSongNumber  
-  CMP #$09
+  CMP #$09 ; song is not Red Pilled - no pills
   BNE EnginePlaying_SkipPills
   JSR AnimatePills
   JSR AnimatePills2
+  
   JMP SpratzCheckHit
-SpratzCheckHitDone:
+EnginePlaying_SpratzCheckHitDone:
+
   LDA #HERO_HIT 
   BIT gameFlags
-  BNE PlayerHit
+  BNE EnginePlaying_PlayerHit
+  
   JMP SpratzCheckBonus
-SpratzCheckBonusDone: 
-  LDA #HERO_HIT 
-  BIT gameFlags
-  BNE PlayerBonus
+EnginePlaying_SpratzCheckBonusDone: 
+
+  JSR CheckPlayerBonusFlag
+
 EnginePlaying_SkipPills:  
 
-  LDA WOO_RAM
-  CMP #$F0
-  BEQ SkipAnimateWoo
-  JSR AnimateWoo
-SkipAnimateWoo: 
+;;;;;;;; check death 
+
+  LDA playingSongNumber  
+  CMP #$04 ; no death in High Stakes
+  BEQ EnginePlaying_SkipHeroHitCheck
+  CMP #$09 ; different death in Red Pilled 
+  BEQ EnginePlaying_SkipHeroHitCheck
+
+  LDA #HERO_HIT 
+  BIT gameFlags
+  BNE EnginePlaying_PlayerHit
+  
+EnginePlaying_SkipHeroHitCheck: 
+
+  JSR ResetHeroHead
+
+;;;;;;;; input reactions 
 
   JMP EnginePlaying_ReactToActions
-ActionsReactDone: 
+EnginePlaying_ActionsReactDone: 
 
   JMP EnginePlaying_ReactToDpad
-DpadReactDone: 
+EnginePlaying_DpadReactDone: 
   
+  LDA #HIT_ON_BEAT
+  BIT gameFlags
+  BNE EnginePlaying_ResetBeatFlag
+  
+EnginePlaying_ResetBeatFlagDone: 
+
+  JSR PlaySampleA
+  JSR PlaySampleB
+  
+;;;;;;;;; routine animations 
+
+  JSR AnimateGuitars
+  JSR AnimateCymbals
+  
+;;;;;;;;; song and audio 
+  
+EnginePlaying_SongAndAudio: 
   LDA playingSongNumber
-  BEQ SkipMusic
+  BEQ EnginePlaying_SkipMusic
 
   LDA #MUSIC_INITIALIZED
   BIT soundFlags
-  BEQ GoToInitTrack
+  BEQ EnginePlaying_GoToInitTrack
 
   JSR PLAY_ADDRESS
   
   LDA IS_PLAYING_RAM
-  BEQ SongFinished
+  BEQ EnginePlaying_SongFinished
 
-SkipMusic:
+EnginePlaying_SkipMusic:
   JMP GameEngineDone
-GoToInitTrack: 
+EnginePlaying_GoToInitTrack: 
   JMP InitTrack
-SongFinished: 
+EnginePlaying_SongFinished: 
   JMP PlayingSelectPressed
 
-;;;;;;;;;;;;;;;
+EnginePlaying_ResetBeatFlag: 
+  LDA hitBeatTimeout
+  CMP #$1B
+  BCS SkipResetBeatFlag
+  LDA #HIT_ON_BEAT
+  EOR #%11111111
+  AND gameFlags
+  STA gameFlags
+SkipResetBeatFlag: 
+  JMP EnginePlaying_ResetBeatFlagDone
 
-PlayerHit: 
-  LDA heroSparx+2
-  STA (SPRATZ_RAM+1+4*2)
-  CLC 
-  ADC #$01
-  STA (SPRATZ_RAM+1+4*3)
-  ADC #$01
-  STA (SPRATZ_RAM+1+4*4)
-  ADC #$01
-  STA (SPRATZ_RAM+1+4*5)
-  
-  JSR AS_StopMusic
-  JSR Bloop
-  JMP GameEngineDone
+EnginePlaying_PlayerHit: 
+  JMP PlayerHit
 
-PlayerBonus: 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+CheckPlayerBonusFlag: 
+  LDA #HERO_HIT 
+  BIT gameFlags
+  BEQ PlayerNoBonus
   JSR ResetHeroHitFlag
   JSR IncrementScoreDisplay
   JSR IncrementScoreDisplay
   JSR IncrementScoreDisplay
   JSR IncrementScoreDisplay  
-  
-  JSR SayWoo
-  JMP EnginePlaying_SkipPills
+  JSR IncrementScoreDisplay
+PlayerNoBonus: 
+  RTS 
 
 HideAllSprites: 
   LDX #$00
@@ -351,7 +413,7 @@ HideSpritesLoop:
 DontHideSprites: 
   RTS 
 
-ShowSongSprites: 
+ShowSongSprites:   
 ShowElmo: 
   LDX #LOW(ELMO_RAM)
   LDA #SPRITE_ELM_X
@@ -382,8 +444,11 @@ ShowCymbals:
   STA ($0400+4), x
   STA ($0400+4*2), x
   STA ($0400+4*3), x
-ShowScore: 
+ShowLives: 
   LDA #$0D
+  STA LIVES_RAM
+  STA (LIVES_RAM+4)
+ShowScore: 
   STA SCORE_RAM
   STA (SCORE_RAM+4)
   STA (SCORE_RAM+4*2)
@@ -399,13 +464,14 @@ ShowInventory:
   LDA #$C0
   STA (INVENTORY_RAM+3)
 ShowSparx: 
-  LDX #LOW(SPRATZ_RAM)
+  LDX #LOW(HERO_RAM)
   LDA #SPRITE_SPR_X
   JSR ShowSpratzX
   LDA #SPRITE_SPR_Y
   JSR ShowSpratzY
-  LDX #LOW(SPRATZ_RAM)
-  LDA currentHero
+  LDX currentHero
+  LDA heroDefaultSprites, x
+  LDX #LOW(HERO_RAM)
   JSR ChangeHeroTiles
 DontShowSprites:
   RTS 
@@ -483,34 +549,6 @@ ReadController1Loop:
   BNE ReadController1Loop
   RTS 
   
-EngineTitle_ReactToInput:
-  LDA buttons1 
-  AND #BTN_START
-  BNE EngineTitle_TitleStartPressed 
-  LDA buttons1 
-  AND #BTN_UP
-  BNE EngineTitle_ArrowMoveUp
-  LDA buttons1 
-  AND #BTN_DOWN 
-  BNE EngineTitle_ArrowMoveDown
-  LDA buttons1 
-  AND #%00000000
-  BNE DoNothing 
-  LDA #$00
-  STA buttonlatch
-DoNothing: 
-  JMP GameEngineDone
-  
-EngineTitle_TitleStartPressed: 
-  JMP TitleStartPressed
-;;;;;;;;;;
-EngineTitle_ArrowMoveUp: 
-  JMP ArrowMoveUp
-;;;;;;;;;;
-EngineTitle_ArrowMoveDown: 
-  JMP ArrowMoveDown
-;;;;;;;;;;
-
 EnginePlaying_ReactToDpad: 
   LDA buttons1 
   AND #BTN_LEFT 
@@ -526,7 +564,8 @@ EnginePlaying_ReactToDpad:
   EOR #%11111111                ; 11111110
   AND soundFlags
   STA soundFlags
-  JMP DpadReactDone
+  JMP EnginePlaying_DpadReactDone
+  
 ;;;;;;;;;;;;;;;;;;;;;;;
 
 EnginePlaying_ReactToActions: 
@@ -546,21 +585,23 @@ EnginePlaying_ReactToActions:
   AND #BTN_DOWN 
   BNE EnginePlaying_SpritesBop
 ; below will be executed if NOT SELECT/A/B/DOWN 
-; reset Sparx head
-  LDX #LOW(SPRATZ_RAM)
-  LDA currentHero
-  JSR ChangeHeroTiles
-  LDA #$21
-  STA (SPRATZ_RAM+1+4*5)
 ; reset samples 
   JSR ResetSamples
-  JMP ActionsReactDone
+  JMP EnginePlaying_ActionsReactDone
   
 ResetSamples: 
   LDA #SAMPLE_PLAYED    ; 00000001
   EOR #%11111111 		; 11111110
   AND soundFlags      
   STA soundFlags
+  
+  LDA bufferTimeout
+  BNE ResetSamplesEnd
+  
+  JSR ResetBufferA
+  JSR ResetBufferB
+  
+ResetSamplesEnd: 
   RTS
 
 EnginePlaying_SpratzMoveLeft: 
@@ -600,15 +641,15 @@ EnginePlaying_MoveGuiness:
   LDA buttons1 
   AND #BTN_B
   BNE e_PlaySampleB
-  JMP ActionsReactDone
+  JMP EnginePlaying_ActionsReactDone
 
 e_PlaySampleA: 
-  JSR PlaySampleA
-  JMP ActionsReactDone
+  JSR BufferA
+  JMP EnginePlaying_ActionsReactDone
 
 e_PlaySampleB: 
-  JSR PlaySampleB
-  JMP ActionsReactDone
+  JSR BufferB
+  JMP EnginePlaying_ActionsReactDone
 
 ResetHeroHitFlag: 
   LDA #HERO_HIT
@@ -616,6 +657,23 @@ ResetHeroHitFlag:
   AND gameFlags
   STA gameFlags
   
+  RTS 
+
+ResetHeroHead: 
+  LDA #SAMPLE_PLAYED
+  BIT soundFlags
+  BNE ResetHeroHeadDone
+  
+  LDA faceTimeout 
+  BNE ResetHeroHeadDone
+
+  LDX currentHero
+  LDA heroDefaultSprites, x
+  LDX #LOW(HERO_RAM)
+  JSR ChangeHeroTiles
+  LDA #$21
+  STA (HERO_RAM+1+4*5)
+ResetHeroHeadDone:
   RTS 
 
 TitleStartPressed: 
@@ -688,14 +746,54 @@ goto_PlayTrack13:
 goto_FinishPlayTrack: 
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
+  JSR DisplayLives
   JSR AS_StartPlayingCurrentTrack
   JMP GameEngineDone
 
 ;;;;;;;;;;
 
+DisplayLives:
+  LDA playerLives
+  CMP #99
+  BEQ Show99Lives
+  CMP #0
+  BEQ Show0Lives
+
+  LDA #$C0
+  STA (LIVES_RAM+1)
+  LDA #$C1 
+  STA (LIVES_RAM+1+4)
+
+  JMP DisplayLivesDone
+Show99Lives:
+
+  LDA #$C9
+  STA (LIVES_RAM+1) 
+  STA (LIVES_RAM+1+4)
+
+  JMP DisplayLivesDone
+Show0Lives:
+  LDA #$C0
+  STA (LIVES_RAM+1) 
+  STA (LIVES_RAM+1+4)
+DisplayLivesDone:
+  RTS
+
 PlayingSelectPressed:
   JSR ResetPPU
   JSR HideAllSprites
+  
+  LDA #$00
+  STA pointerLo
+  STA pointerHi
+  STA tmp
+  STA nextFrame
+  STA nextFrame3
+  STA frameTimeout
+  STA faceTimeout
+  STA hitBeatTimeout
+  STA bufferTimeout
+  STA animationClock
   
    ; Check and update highscore
   LDA highScore+0
@@ -827,12 +925,15 @@ StillMovingDown:
   STA buttonlatch
 StopMovingDown:
   JMP GameEngineDone
+  
 ;;;;;;;;;;;;
 
+  .bank 31 ; (4/4 last bank/fixed) $E000
+  .org $E000
+
   .include "inc/hero_movement.asm"
-  
+
   .include "inc/animations.asm"
-  
   
 Bleep:
   ; enable channel
@@ -871,6 +972,10 @@ Bloop:
   STA $4003
   RTS
 
+  .include "inc/banktable.asm"
+
+  .include "inc/play_routines.asm"
+
 spritepalette: 
   .db $0F,$00,$10,$37,$0F,$00,$21,$37,$0F,$16,$00,$10,$0F,$02,$38,$3C ;SPRITE
 
@@ -897,25 +1002,6 @@ bgpalette11:
   
 bgpalette13:
   .incbin "bg13.pal"
-
-  .include "inc/banktable.asm"
-
-heroSparx: 
-  .byte $00, $19, $7C
-heroZappa: 
-  .byte $60, $73
-heroIvo: 
-  .byte $40, $53
-heroFreddy: 
-  .byte $68, $7B
-
-  .include "inc/play_routines.asm"
-
-;;;;;;;;;;;;;;;;;;;;
-
-
-  .bank 31 ; (4/4 last bank/fixed) $E000
-  .org $E000
 
   .include "inc/sprites.asm"
 

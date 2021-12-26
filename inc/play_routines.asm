@@ -41,10 +41,10 @@ PlayTrack5:
 PlayTrack6: 
   LDA #$06
   STA playingSongNumber
-  LDA heroZappa+0
+  LDA #HERO_ZAPPA
   STA currentHero
-  LDA heroZappa+1
-  STA currentHeroBop
+  LDA #99
+  STA playerLives
   JSR LoadSongPalette ; LoadPalette6
   JSR LoadSong6Background
   JMP goto_FinishPlayTrack
@@ -76,10 +76,10 @@ PlayTrack9:
 PlayTrack10: 
   LDA #$0A
   STA playingSongNumber
-  LDA heroFreddy+0
+  LDA #HERO_FREDDY
   STA currentHero
-  LDA heroFreddy+1
-  STA currentHeroBop
+  LDA #99
+  STA playerLives
   JSR LoadSongPalette ; LoadPalette1
   JSR LoadSong10Background
   JMP goto_FinishPlayTrack
@@ -103,20 +103,19 @@ PlayTrack12:
 PlayTrack13: 
   LDA #$0D
   STA playingSongNumber
-  LDA heroIvo+0
+  LDA #HERO_IVO
   STA currentHero
-  LDA heroIvo+1
-  STA currentHeroBop
+  LDA #0
+  STA playerLives
   JSR LoadSongPalette ; LoadPalette13
   JSR LoadSong13Background
   JMP goto_FinishPlayTrack
   
-  
 LoadSparxHero: 
-  LDA heroSparx+0
+  LDA #HERO_SPARX
   STA currentHero
-  LDA heroSparx+1
-  STA currentHeroBop
+  LDA #1
+  STA playerLives
   RTS 
   
 songPalettesLB: 
