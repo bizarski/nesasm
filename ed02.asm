@@ -265,7 +265,7 @@ EnginePlaying:
   CMP #$09 ; song is Red Pilled, no coins nor tomatoes there
   BEQ EnginePlaying_SkipObjs
   
- ; JSR AnimateObjs
+  JSR AnimateObjs
   
   JMP SpratzCheckObjHit
 EnginePlaying_SpratzCheckObjHitDone:
