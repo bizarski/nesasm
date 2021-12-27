@@ -373,6 +373,8 @@ c_ObjMove:
 
   LDX nextFrame
   LDA playingSongNumber
+  CMP #$02
+  BEQ PutHearts
   CMP #$04
   BEQ PutCoins
   CMP #$0B
@@ -381,15 +383,12 @@ c_ObjMove:
   STA (OBJ_RAM+2)
   LDA animTomatos, x
   JMP StorePatternInRam
-PutCoins: 
-  LDA #%00000000
-  STA (OBJ_RAM+2)
-  LDA animCoins, x
-  JMP StorePatternInRam
-PutBottles: 
-  LDA #%00000001
-  STA (OBJ_RAM+2)
-  LDA animBottles, x
+c_PutCoins: 
+  JMP PutCoins
+c_PutHearts: 
+  JMP PutHearts
+c_PutBottles: 
+  JMP PutBottles
 StorePatternInRam:
   STA (OBJ_RAM+1)
   INC OBJ_RAM
@@ -403,6 +402,23 @@ SkipFallObj:
 c_DelaySpawn: 
   JMP DelaySpawnObj
 
+
+PutCoins: 
+  LDA #%00000000
+  STA (OBJ_RAM+2)
+  LDA animCoins, x
+  JMP StorePatternInRam
+PutHearts: 
+  LDA #%00000010
+  STA (OBJ_RAM+2)
+  LDA animHearts, x
+  JMP StorePatternInRam
+PutBottles: 
+  LDA #%00000001
+  STA (OBJ_RAM+2)
+  LDA animBottles, x
+  JMP StorePatternInRam
+
 ;;;;;;;;;;;;; animation tables 
 
 animCoins: 
@@ -413,6 +429,9 @@ animTomatos:
   
 animBottles: 
   .db $47, $47, $47, $57
+  
+animHearts: 
+  .db $0F, $0F, $1F, $0F
   
 animObjDeath:
   .db $4F, $3F, $3F, $18

@@ -401,6 +401,12 @@ MakeOops:
   ADC #$01 
   STA (HERO_RAM+1+4*3)
   
+  LDA #$74
+  STA (GUINESS_RAM+1+4*2)
+  CLC 
+  ADC #$01 
+  STA (GUINESS_RAM+1+4*3)
+  
   LDA #$0C
   STA faceTimeout
   RTS

@@ -740,6 +740,12 @@ ResetHeroHead:
   LDA heroDefaultSprites, x
   LDX #LOW(HERO_RAM)
   JSR ChangeHeroTiles
+  
+  LDA #$54
+  STA (GUINESS_RAM+1+4*2)
+  CLC
+  ADC #$01 
+  STA (GUINESS_RAM+1+4*3)
 ResetHeroHeadDone:
   RTS 
 
