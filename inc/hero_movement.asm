@@ -155,37 +155,60 @@ SpritesNoHit:
   
 SetHitFlag: 
   LDA gameFlags
+  ORA #HIT_DETECT
+  STA gameFlags
+  RTS
+  
+SetDeathFlag: 
+  LDA gameFlags
   ORA #HERO_HIT
   STA gameFlags
   RTS
   
+SetBonusFlag: 
+  LDA gameFlags
+  ORA #BONUS_HIT
+  STA gameFlags
+  RTS
+  
+  
 ;;;;;;; hero death hit check 
 
-SpratzCheckHit: 
+HeroCheckBluePillHit: 
   LDA (BLUEPILL_RAM+1)
   CMP #$18
-  BEQ SpratzNoHit
+  BEQ BluePillNoHit
   LDA (BLUEPILL_RAM+4)    ; bottom part of pill 
   CMP #SPRITE_SPR_Y
-  BCC SpratzNoHit
+  BCC BluePillNoHit
   CMP #(SPRITE_SPR_Y+8*3) ; full length of metasprite
-  BCS SpratzNoHit
+  BCS BluePillNoHit
   LDA (BLUEPILL_RAM+3+4)
   STA tmp 
   LDA #%01000000
   BIT (HERO_RAM+2)
   BEQ pill_CheckHitHeroFlipped 
   BNE pill_CheckHitHero
-SpratzNoHit: 
-  JMP EnginePlaying_SpratzCheckHitDone 
+BluePillNoHit: 
+  JMP EnginePlaying_HeroCheckBluePillHitDone
 
 pill_CheckHitHeroFlipped: 
   JSR CheckHitHeroFlipped
-  JMP EnginePlaying_SpratzCheckHitDone
-
+  JMP pill_AfterCheck
 pill_CheckHitHero: 
   JSR CheckHitHero
-  JMP EnginePlaying_SpratzCheckHitDone
+pill_AfterCheck: 
+  LDA #HIT_DETECT 
+  BIT gameFlags
+  BEQ BluePillNoDetect
+  JSR SetDeathFlag
+  LDA #$F0
+  STA (BLUEPILL_RAM+0)
+  STA (BLUEPILL_RAM+4)
+  
+BluePillNoDetect: 
+  JMP EnginePlaying_HeroCheckBluePillHitDone
+
 
 PlayerHit: 
   JSR DecrementLivesDisplay
@@ -211,13 +234,14 @@ PlayerHit:
   JMP GameEngineDone
 SkipGameOver:
   JSR MakeOops 
-  JSR ResetHeroHitFlag  
+  JSR ResetHeroHitFlag
+  JSR ResetHitDetect
   JMP EnginePlaying_SongAndAudio
 
 
 ;;;;;;;; hero bonus hit check 
 
-SpratzCheckBonus: 
+HeroCheckRedPillHit: 
   LDA (REDPILL_RAM+4)    ; bottom part of pill 
   CMP #SPRITE_SPR_Y
   BCC SpratzNoBonus
@@ -231,14 +255,16 @@ SpratzCheckBonus:
   BNE bonus_CheckHitHero
   
 HidePill:
-  LDA #HERO_HIT 
+  LDA #HIT_DETECT 
   BIT gameFlags
   BEQ SpratzNoBonus
   LDA #$F0
   STA (REDPILL_RAM+0)
   STA (REDPILL_RAM+4)
+  JSR SetBonusFlag
+  JSR MakeWoo
 SpratzNoBonus: 
-  JMP EnginePlaying_SpratzCheckBonusDone
+  JMP EnginePlaying_HeroCheckRedPillHitDone
 
 bonus_CheckHitHeroFlipped:
   JSR CheckHitHeroFlipped
@@ -250,12 +276,12 @@ bonus_CheckHitHero:
   
 ;;;;;;;;; object hit check 
   
-SpratzCheckObjHit: 
+HeroCheckObjHit: 
   LDA (OBJ_RAM)    
   CMP #SPRITE_SPR_Y
-  BCC ObjNoHit
+  BCC ObjAfterCheck
   CMP #(SPRITE_SPR_Y+8*3) ; full length of metasprite
-  BCS ObjNoHit
+  BCS ObjAfterCheck
   LDA (OBJ_RAM+3)
   STA tmp 
   LDA #%01000000
@@ -263,13 +289,22 @@ SpratzCheckObjHit:
   BEQ obj_CheckHitHero 
   BNE obj_CheckHitHeroFlipped
 HideObj:
-  LDA #HERO_HIT 
+  LDA #HIT_DETECT 
   BIT gameFlags
-  BEQ ObjNoHit
+  BEQ ObjAfterCheck
   LDA #$F0
   STA (OBJ_RAM+0)
-ObjNoHit: 
-  JMP EnginePlaying_SpratzCheckObjHitDone
+  
+  LDA playingSongNumber
+  CMP #$04
+  BEQ DetectBonus
+  JSR SetDeathFlag
+  JMP ObjAfterCheck
+DetectBonus:   
+  JSR SetBonusFlag
+  JSR MakeWoo
+ObjAfterCheck: 
+  JMP EnginePlaying_HeroCheckObjHitDone
 
 obj_CheckHitHero:
   JSR CheckHitHeroFlipped
@@ -391,6 +426,7 @@ OnError:
   JSR SetSamplePlayedFlag
   JSR DecrementScoreDisplay
   JSR MakeOops
+  JSR MakeGuinnessOoops
   RTS
 
 MakeOops:
@@ -400,15 +436,23 @@ MakeOops:
   CLC 
   ADC #$01 
   STA (HERO_RAM+1+4*3)
-  
+  LDA #$0C
+  STA faceTimeout
+  RTS
+
+MakeWoo: 
+  LDA #$32
+  STA (HERO_RAM+1+4*4)
+  LDA #$10
+  STA faceTimeout
+  RTS
+
+MakeGuinnessOoops: 
   LDA #$74
   STA (GUINESS_RAM+1+4*2)
   CLC 
   ADC #$01 
   STA (GUINESS_RAM+1+4*3)
-  
-  LDA #$0C
-  STA faceTimeout
   RTS
 
 OnBeat: 
@@ -420,10 +464,7 @@ OnBeat:
   STA hitBeatTimeout
   LDA #$00
   STA nextFrame3
-  LDA #$32
-  STA (HERO_RAM+1+4*4)
-  LDA #$10
-  STA faceTimeout
+  JSR MakeWoo
   RTS 
 
 ;;;;;;; button A 

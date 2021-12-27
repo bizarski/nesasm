@@ -249,9 +249,10 @@ EngineGameOver:
   JMP GameEngineDone
   
 EngineGameOver_Reset: 
-  JSR ResetHeroHitFlag  
+  JSR ResetHeroHitFlag
+  JSR ResetHitDetect  
   JMP PlayingSelectPressed
-  
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; game playing state 
   
 EnginePlaying:   
@@ -262,21 +263,13 @@ EnginePlaying:
 ;;;;;;;; coins and tomatoes animation and hit detection 
 
   LDA playingSongNumber  
-  CMP #$09 ; song is Red Pilled, no coins nor tomatoes there
-  BEQ EnginePlaying_SkipObjs
+  CMP #$09 ; song is Red Pilled, different sprite detection there
+  BEQ EnginePlaying_HeroCheckObjHitDone
   
   JSR AnimateObjs
   
-  JMP SpratzCheckObjHit
-EnginePlaying_SpratzCheckObjHitDone:
-
-  LDA playingSongNumber  
-  CMP #$04 ; song is not High Stakes - no bonus 
-  BNE EnginePlaying_SkipObjs
-
-  JSR CheckPlayerBonusFlag
-
-EnginePlaying_SkipObjs: 
+  JMP HeroCheckObjHit
+EnginePlaying_HeroCheckObjHitDone: 
 
 ;;;;;;; UFO 
 
@@ -292,36 +285,29 @@ EnginePlaying_SkipUFO:
   
   LDA playingSongNumber  
   CMP #$09 ; song is not Red Pilled - no pills
-  BNE EnginePlaying_SkipPills
+  BNE EnginePlaying_HeroCheckRedPillHitDone
   JSR AnimatePills
   JSR AnimatePills2
   
-  JMP SpratzCheckHit
-EnginePlaying_SpratzCheckHitDone:
-
-  LDA #HERO_HIT 
-  BIT gameFlags
-  BNE EnginePlaying_PlayerHit
+  JMP HeroCheckBluePillHit
+EnginePlaying_HeroCheckBluePillHitDone:
   
-  JMP SpratzCheckBonus
-EnginePlaying_SpratzCheckBonusDone: 
+  JMP HeroCheckRedPillHit
+EnginePlaying_HeroCheckRedPillHitDone:   
+
+;;;;;;;; check bonus
 
   JSR CheckPlayerBonusFlag
-
-EnginePlaying_SkipPills:  
 
 ;;;;;;;; check death 
 
   LDA playingSongNumber  
   CMP #$04 ; no death in High Stakes
   BEQ EnginePlaying_SkipHeroHitCheck
-  CMP #$09 ; different death in Red Pilled 
-  BEQ EnginePlaying_SkipHeroHitCheck
-
+  
   LDA #HERO_HIT 
   BIT gameFlags
   BNE EnginePlaying_PlayerHit
-  
 EnginePlaying_SkipHeroHitCheck: 
 
   JSR ResetHeroHead
@@ -388,10 +374,11 @@ EnginePlaying_PlayerHit:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 CheckPlayerBonusFlag: 
-  LDA #HERO_HIT 
+  LDA #BONUS_HIT 
   BIT gameFlags
   BEQ PlayerNoBonus
-  JSR ResetHeroHitFlag
+  JSR ResetBonusFlag
+  JSR ResetHitDetect
   JSR IncrementScoreDisplay
   JSR IncrementScoreDisplay
   JSR IncrementScoreDisplay
@@ -725,8 +712,25 @@ ResetHeroHitFlag:
   EOR #%11111111
   AND gameFlags
   STA gameFlags
+   
+  RTS 
+
+ResetBonusFlag: 
+  LDA #BONUS_HIT
+  EOR #%11111111
+  AND gameFlags
+  STA gameFlags
+    
+  RTS 
+  
+ResetHitDetect: 
+  LDA #HIT_DETECT
+  EOR #%11111111
+  AND gameFlags
+  STA gameFlags
   
   RTS 
+
 
 ResetHeroHead: 
   LDA #SAMPLE_PLAYED
@@ -753,6 +757,7 @@ TitleStartPressed:
   JSR SpratzDirRight
 
   JSR ResetHeroHitFlag
+  JSR ResetHitDetect
   
   LDA #$F0
   STA ARROW_RAM
@@ -832,9 +837,11 @@ MarkSongAsFinished:
   BCC storeProgressIn1
   ORA (completionFlags+1)
   STA (completionFlags+1)
+  JMP MarkSongAsFinishedEnd
 storeProgressIn1: 
   ORA completionFlags
   STA completionFlags
+MarkSongAsFinishedEnd: 
   RTS
 
 DisplayLives:
