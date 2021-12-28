@@ -4,7 +4,7 @@
   .inesmir 1   ; background mirroring
 
 ;; DECLARE SOME VARIABLES HERE
-  .rsset $0050  ;;start variables at ram location 0
+  .rsset $0050  ; start variables at ram location 50
 
   .include "inc/variables.asm"
 
@@ -16,12 +16,12 @@
     
 	.code
 
-	.bank 0	; C	
+	.bank 0			; 0
 	.org $8000
 chrdata: 
   .incbin "ed.chr"  
   
-    .bank 2 	; D
+    .bank 2 		; 1
     .org $8000
   .include "bg-stage.asm"
 
@@ -69,7 +69,13 @@ chrdata:
 	.org LOAD_ADDRESS_BANK_11
   incbin "NSFs/13.nsf"
 	
-	.bank 26	; D
+	.bank 27	; D
+	.org LOAD_ADDRESS_BANK_12
+  incbin "NSFs/aids.nsf"
+	
+	.bank 29    ; E
+	.org LOAD_ADDRESS_BANK_13
+  incbin "NSFs/thend.nsf"
 	
 	.bank 30
   
@@ -182,17 +188,24 @@ NMI:
   JSR ReadController1  	; get the current button data for player 1
   
 GameEngine:  
-  LDA playingSongNumber
-  CMP #$00
-  BNE GameEngine_Playing	; need to use JMP here because relative addressing used by BEQ goes out of range
   LDA #HERO_HIT 
   BIT gameFlags
   BNE GameEngine_GameOver
+  
+  LDA #GAME_COMPLETE
+  BIT gameFlags 
+  BNE GameEngine_Complete
+  
+  LDA playingSongNumber
+  CMP #$00
+  BNE GameEngine_Playing	; need to use JMP here because relative addressing used by BEQ goes out of range
   JMP EngineTitle			; game is displaying title screen
 GameEngine_Playing:
   JMP EnginePlaying  
 GameEngine_GameOver: 
   JMP EngineGameOver
+GameEngine_Complete: 
+  JMP EngineGameComplete
 GameEngineDone: 
 
   RTI
@@ -246,12 +259,44 @@ EngineGameOver:
   LDA buttons1 
   AND #BTN_START
   BNE EngineGameOver_Reset
-  JMP GameEngineDone
+  LDA playingSongNumber
+  BEQ EngineGameOver_SkipMusic
   
+  LDA #MUSIC_INITIALIZED
+  BIT soundFlags
+  BEQ EngineGameOver_GoToInitTrack
+  
+  JSR PLAY_ADDRESS
+EngineGameOver_SkipMusic: 
+  JMP GameEngineDone  
 EngineGameOver_Reset: 
+  LDA currentSong
+  CMP #TRACK_10
+  BEQ EngineGameOver_Closed
   JSR ResetHeroHitFlag
   JSR ResetHitDetect  
   JMP PlayingSelectPressed
+EngineGameOver_Closed: 
+  JMP GamesClosed
+  
+EngineGameOver_GoToInitTrack: 
+  JMP InitTrack
+
+;;;;;;; game complete state 
+
+EngineGameComplete: 
+  LDA playingSongNumber
+  BEQ EngineGameComplete_SkipMusic
+  
+  LDA #MUSIC_INITIALIZED
+  BIT soundFlags
+  BEQ EngineGameComplete_GoToInitTrack
+  
+  JSR PLAY_ADDRESS
+EngineGameComplete_SkipMusic: 
+  JMP GameEngineDone
+EngineGameComplete_GoToInitTrack: 
+  JMP InitTrack
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; game playing state 
   
@@ -355,6 +400,8 @@ EnginePlaying_GoToInitTrack:
   JMP InitTrack
 EnginePlaying_SongFinished: 
   JSR MarkSongAsFinished
+  JMP CheckIfGameComplete
+EnginePlaying_CheckIfGameCompleteDone:
   JMP PlayingSelectPressed
 
 EnginePlaying_ResetBeatFlag: 
@@ -427,6 +474,14 @@ ShowBass:
   LDX #LOW(BASS_RAM)
   LDA #$2A
   JSR ChangeGuitTiles  
+  
+  LDA #%00000011
+  STA ($0400+2), x
+  STA ($0400+2+4), x
+  STA ($0400+2+4*2), x
+  STA ($0400+2+4*3), x
+  STA ($0400+2+4*4), x
+  STA ($0400+2+4*5), x
 ShowGuitars: 
   LDX #LOW(GUITAR_RAM)
   LDA #$B3
@@ -731,7 +786,6 @@ ResetHitDetect:
   
   RTS 
 
-
 ResetHeroHead: 
   LDA #SAMPLE_PLAYED
   BIT soundFlags
@@ -753,82 +807,34 @@ ResetHeroHead:
 ResetHeroHeadDone:
   RTS 
 
-TitleStartPressed: 
-  JSR SpratzDirRight
+;;;;;;;;;;
 
-  JSR ResetHeroHitFlag
-  JSR ResetHitDetect
+CheckIfGameComplete: 
+  LDA #%11111111
+  CMP completionFlags
+  BNE NoCompletion
+  LDA #%00011111
+  CMP (completionFlags+1)
+  BNE NoCompletion
   
-  LDA #$F0
-  STA ARROW_RAM
+  LDA gameFlags
+  ORA #GAME_COMPLETE
+  STA gameFlags
   
   JSR ResetPPU
-  JSR ResetPlayerScore
-  JSR ShowSongSprites
-
-  LDA currentSong
-  CMP #TRACK_1
-  BEQ goto_PlayTrack1 
-  CMP #TRACK_2
-  BEQ goto_PlayTrack2
-  CMP #TRACK_3
-  BEQ goto_PlayTrack3
-  CMP #TRACK_4
-  BEQ goto_PlayTrack4
-  CMP #TRACK_5
-  BEQ goto_PlayTrack5
-  CMP #TRACK_6
-  BEQ goto_PlayTrack6
-  CMP #TRACK_7
-  BEQ goto_PlayTrack7
-  CMP #TRACK_8
-  BEQ goto_PlayTrack8
-  CMP #TRACK_9
-  BEQ goto_PlayTrack9
-  CMP #TRACK_10
-  BEQ goto_PlayTrack10
-  CMP #TRACK_11
-  BEQ goto_PlayTrack11
-  CMP #TRACK_12
-  BEQ goto_PlayTrack12
-  CMP #TRACK_13
-  BEQ goto_PlayTrack13
-  JMP GameEngineDone
-
-goto_PlayTrack1:
-  JMP PlayTrack1
-goto_PlayTrack2:
-  JMP PlayTrack2
-goto_PlayTrack3:
-  JMP PlayTrack3
-goto_PlayTrack4:
-  JMP PlayTrack4
-goto_PlayTrack5:
-  JMP PlayTrack5
-goto_PlayTrack6:
-  JMP PlayTrack6
-goto_PlayTrack7:
-  JMP PlayTrack7
-goto_PlayTrack8:
-  JMP PlayTrack8
-goto_PlayTrack9:
-  JMP PlayTrack9
-goto_PlayTrack10:
-  JMP PlayTrack10
-goto_PlayTrack11:
-  JMP PlayTrack11
-goto_PlayTrack12:
-  JMP PlayTrack12
-goto_PlayTrack13:
-  JMP PlayTrack13
-goto_FinishPlayTrack: 
+  JSR HideAllSprites
+  
+  JSR AS_StopMusic
+  
+  JSR LoadSongPalette
+  JSR LoadYouWin
+  
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
-  JSR DisplayLives
-  JSR AS_StartPlayingCurrentTrack
-  JMP GameEngineDone
-
-;;;;;;;;;;
+  
+  JMP PlayGameDoneTrack
+NoCompletion: 
+  JMP EnginePlaying_CheckIfGameCompleteDone
 
 MarkSongAsFinished:
   LDX playingSongNumber
@@ -923,12 +929,40 @@ HighScoreEnd:
   JSR AS_StopMusic
   
   JSR LoadSongPalette ; LoadPalette9
+  
   JSR LoadMenuBackground  
   
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
   
   JMP GameEngineDone 
+
+GamesClosed:
+  JSR ResetPPU
+  JSR HideAllSprites
+    
+  LDA #$00
+  STA pointerLo
+  STA pointerHi
+  STA tmp
+  STA nextFrame
+  STA nextFrame3
+  STA frameTimeout
+  STA faceTimeout
+  STA hitBeatTimeout
+  STA bufferTimeout
+  STA animationClock
+  
+  JSR AS_StopMusic
+  
+  JSR LoadSongPalette ; LoadPalette9
+  
+  JSR LoadAIDS
+  
+  LDA #PPU_SETUP ; enable sprites, enable background
+  STA $2001
+
+  JMP PlayAidsTrack
 
 DisplayHighScore: 
   LDA #$BE 
@@ -1028,6 +1062,81 @@ StopMovingDown:
 
   .include "inc/animations.asm"
   
+TitleStartPressed: 
+  JSR SpratzDirRight
+
+  JSR ResetHeroHitFlag
+  JSR ResetHitDetect
+  
+  LDA #$F0
+  STA ARROW_RAM
+  
+  JSR ResetPPU
+  JSR ResetPlayerScore
+  JSR ShowSongSprites
+
+  LDA currentSong
+  CMP #TRACK_1
+  BEQ goto_PlayTrack1 
+  CMP #TRACK_2
+  BEQ goto_PlayTrack2
+  CMP #TRACK_3
+  BEQ goto_PlayTrack3
+  CMP #TRACK_4
+  BEQ goto_PlayTrack4
+  CMP #TRACK_5
+  BEQ goto_PlayTrack5
+  CMP #TRACK_6
+  BEQ goto_PlayTrack6
+  CMP #TRACK_7
+  BEQ goto_PlayTrack7
+  CMP #TRACK_8
+  BEQ goto_PlayTrack8
+  CMP #TRACK_9
+  BEQ goto_PlayTrack9
+  CMP #TRACK_10
+  BEQ goto_PlayTrack10
+  CMP #TRACK_11
+  BEQ goto_PlayTrack11
+  CMP #TRACK_12
+  BEQ goto_PlayTrack12
+  CMP #TRACK_13
+  BEQ goto_PlayTrack13
+  JMP GameEngineDone
+
+goto_PlayTrack1:
+  JMP PlayTrack1
+goto_PlayTrack2:
+  JMP PlayTrack2
+goto_PlayTrack3:
+  JMP PlayTrack3
+goto_PlayTrack4:
+  JMP PlayTrack4
+goto_PlayTrack5:
+  JMP PlayTrack5
+goto_PlayTrack6:
+  JMP PlayTrack6
+goto_PlayTrack7:
+  JMP PlayTrack7
+goto_PlayTrack8:
+  JMP PlayTrack8
+goto_PlayTrack9:
+  JMP PlayTrack9
+goto_PlayTrack10:
+  JMP PlayTrack10
+goto_PlayTrack11:
+  JMP PlayTrack11
+goto_PlayTrack12:
+  JMP PlayTrack12
+goto_PlayTrack13:
+  JMP PlayTrack13
+goto_FinishPlayTrack: 
+  LDA #PPU_SETUP ; enable sprites, enable background
+  STA $2001
+  JSR DisplayLives
+  JSR AS_StartPlayingCurrentTrack
+  JMP GameEngineDone
+  
 ShowIndicatorSprites: 
   LDX #$00
 BigIndicatorLoop:
@@ -1053,6 +1162,7 @@ ShowIndicatorLoop2:
   BNE ShowIndicatorLoop2
   LDX #$00
   LDA #$CF
+  
 ShowIndicatorLoop3: 
   STA (BASS_RAM+3), x
   INX
@@ -1061,6 +1171,21 @@ ShowIndicatorLoop3:
   INX
   CPX #$34
   BNE ShowIndicatorLoop3
+
+  LDY #$01
+  LDX #$00
+  
+  LDX #$00
+  LDA #%00000001
+  
+ShowIndicatorLoop4: 
+  STA (BASS_RAM+2), x
+  INX
+  INX
+  INX
+  INX
+  CPX #$34
+  BNE ShowIndicatorLoop4
 
   LDY #$01
   LDX #$00

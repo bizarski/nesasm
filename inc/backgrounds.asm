@@ -1,9 +1,6 @@
 
 LoadSong1Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
+  JSR SwitchToBgBank
 
   JSR LoadNametableHUD
   LDA #low(track1title)
@@ -26,10 +23,7 @@ LoadSong1Background:
   RTS 
  
 LoadSong2Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
+  JSR SwitchToBgBank
   
   JSR LoadNametableHUD
   
@@ -76,10 +70,7 @@ LoadSong2Background:
   RTS 
  
 LoadSong3Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
+  JSR SwitchToBgBank
   
   JSR LoadNametableHUD
   LDA #low(track3title)
@@ -108,10 +99,7 @@ LoadSong3Background:
   RTS 
   
 LoadSong4Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
+  JSR SwitchToBgBank
   
   JSR LoadNametableHUD
   
@@ -170,10 +158,7 @@ LoadSong4Background:
   RTS 
 
 LoadSong5Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
+  JSR SwitchToBgBank
   
   JSR LoadNametableHUD
   
@@ -232,16 +217,9 @@ LoadSong5Background:
   RTS 
 
 LoadSong6Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
+  JSR SwitchToBgBank
+  JSR StartWritingBG
   
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
   JSR LoadBlackLine
   JSR LoadBlackLine
   JSR LoadBlackLine
@@ -272,10 +250,7 @@ LoadSong6Background:
   RTS 
 
 LoadSong7Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
+  JSR SwitchToBgBank
   
   JSR LoadNametableHUD
   
@@ -325,10 +300,7 @@ LoadSong7Background:
   RTS 
 
 LoadSong8Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
+  JSR SwitchToBgBank
   
   JSR LoadNametableHUD
 
@@ -407,10 +379,7 @@ LoadSong8Background:
   RTS 
   
 LoadSong9Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
+  JSR SwitchToBgBank
   
   JSR LoadNametableHUD
 
@@ -440,16 +409,9 @@ LoadSong9Background:
   RTS 
   
 LoadSong10Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
+  JSR SwitchToBgBank
+  JSR StartWritingBG
   
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
   JSR LoadBlackLine
   JSR LoadBlackLine
   JSR LoadBlackLine
@@ -498,10 +460,7 @@ LoadSong10Background:
   RTS 
   
 LoadSong11Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
+  JSR SwitchToBgBank
   
   JSR LoadNametableHUD
   LDA #low(track11title)
@@ -601,16 +560,9 @@ LoadSong11Background:
   RTS 
   
 LoadSong12Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
-
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
+  JSR SwitchToBgBank
+  JSR StartWritingBG
+  
   JSR LoadBlackLine
   JSR LoadBlackLine
   JSR LoadBlackLine
@@ -676,16 +628,9 @@ DontResetLetters:
   RTS 
 
 LoadSong13Background: 
-  LDY #$01
-  ; bankswitch
-  LDA otherbanks, y      ; read a byte from the otherbanks
-  STA otherbanks, y
-  
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
+  JSR SwitchToBgBank
+  JSR StartWritingBG
+ 
   JSR LoadBlackLine
   JSR LoadBlackLine
   JSR LoadBlackLine
@@ -790,8 +735,108 @@ LoadSong13Background:
   STA tmp 
   JSR LoadXRowsNametable
 
-
   RTS 
+
+LoadAIDS: 
+  JSR SwitchToBgBank
+  JSR StartWritingBG
+  
+  LDA #$1C
+  STA tmp
+  JSR LoadXRowsBlack
+  
+  LDX #$00
+LoadAIDSLettersLoop
+  LDA aidsletters, x
+  STA $2007		
+  INX
+  CPX #$20
+  BNE LoadAIDSLettersLoop
+  
+  LDA #$1E
+  STA tmp
+  JSR LoadXRowsBlack
+  JSR AddAllBlackAttributes
+  RTS 
+
+LoadYouWin: 
+  JSR SwitchToBgBank
+  JSR StartWritingBG
+  
+  LDA #$1C
+  STA tmp
+  JSR LoadXRowsBlack
+  
+  LDX #$00
+LoadWinLettersLoop
+  LDA youwinletters, x
+  STA $2007		
+  INX
+  CPX #$20
+  BNE LoadWinLettersLoop
+  
+  LDA #$1E
+  STA tmp
+  JSR LoadXRowsBlack
+  JSR AddAllBlackAttributes
+  RTS 
+
+LoadYouLose: 
+  JSR SwitchToBgBank
+  JSR StartWritingBG
+  
+  LDA #$1C
+  STA tmp
+  JSR LoadXRowsBlack
+  
+  LDX #$00
+LoadLoseLettersLoop
+  LDA youloseletters, x
+  STA $2007		
+  INX
+  CPX #$20
+  BNE LoadLoseLettersLoop
+  
+  LDA #$1E
+  STA tmp
+  JSR LoadXRowsBlack
+  JSR AddAllBlackAttributes
+  RTS 
+
+AddAllBlackAttributes: 
+  LDX #$00
+  LDA #$00
+BlackAttributesLoop: 
+  STA $2007
+  INX
+  CPX #$40
+  BNE BlackAttributesLoop
+  RTS
+
+SwitchToBgBank: 
+  LDY #$01
+  ; bankswitch
+  LDA otherbanks, y      ; read a byte from the otherbanks
+  STA otherbanks, y
+  RTS
+
+StartWritingBG: 
+  LDA $2002             ; read PPU status to reset the high/low latch
+  LDA #$20
+  STA $2006             ; write the high byte of $2000 address
+  LDA #$00
+  STA $2006             ; write the low byte of $2000 address
+  
+  RTS
+
+LoadXRowsBlack:
+  LDY #$00
+LoadXRowsBlackLoop:
+  JSR LoadBlackLine				
+  INY
+  CPY tmp
+  BNE LoadXRowsBlackLoop 
+  RTS
 
 LoadBlackLine: 
   LDX #$00
@@ -824,11 +869,7 @@ LoadNametableTop:
   RTS
   
 LoadNametableHUD:
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
+  JSR StartWritingBG
   JSR LoadBlackLine
   JSR LoadBlackLine
   JSR LoadBlackLine
@@ -890,11 +931,7 @@ LoadBottomWithoutAttributes:
   RTS
 
 LoadNametable:
-  LDA $2002             ; read PPU status to reset the high/low latch
-  LDA #$20
-  STA $2006             ; write the high byte of $2000 address
-  LDA #$00
-  STA $2006             ; write the low byte of $2000 address
+  JSR StartWritingBG
 LoadNameTableLoop:
   LDA [pointerLo], Y					; load data using indirect indexed addressing (Y must be used in this mode)
   STA $2007							; write to PPU
