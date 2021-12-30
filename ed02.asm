@@ -285,16 +285,14 @@ EngineGameOver_GoToInitTrack:
 ;;;;;;; game complete state 
 
 EngineGameComplete: 
-  LDA playingSongNumber
-  BEQ EngineGameComplete_SkipMusic
+  JSR DisplayHighScore
   
   LDA #MUSIC_INITIALIZED
   BIT soundFlags
   BEQ EngineGameComplete_GoToInitTrack
   
   JSR PLAY_ADDRESS
-EngineGameComplete_SkipMusic: 
-  JMP GameEngineDone
+
 EngineGameComplete_GoToInitTrack: 
   JMP InitTrack
 
@@ -816,6 +814,8 @@ CheckIfGameComplete:
   LDA #%00011111
   CMP (completionFlags+1)
   BNE NoCompletion
+ 
+  JSR UpdateHighScoreValues
   
   LDA gameFlags
   ORA #GAME_COMPLETE
@@ -826,13 +826,42 @@ CheckIfGameComplete:
   
   JSR AS_StopMusic
   
+CheckHighScore: 
+  LDA scoreLo
+  CMP #$01
+  BCC YouLose
+  BEQ ContinueCheckHighScore
+  BCS YouWin
+ContinueCheckHighScore: 
+  LDA scoreHi
+  CMP #$F4
+  BCC YouLose
+  JMP YouWin
+YouLose:
+  LDA #$0E ; loser music
+  STA playingSongNumber
+
   JSR LoadSongPalette
-  JSR LoadYouWin
+  JSR LoadYouLoseBackground
   
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
   
-  JMP PlayGameDoneTrack
+  JSR AS_StartPlayingCurrentTrack
+  JMP GameEngineDone 
+
+YouWin:
+  LDA #$0F ; winner music
+  STA playingSongNumber
+
+  JSR LoadSongPalette
+  JSR LoadYouWinBackground
+  
+  LDA #PPU_SETUP ; enable sprites, enable background
+  STA $2001
+  
+  JSR AS_StartPlayingCurrentTrack
+  JMP GameEngineDone 
 NoCompletion: 
   JMP EnginePlaying_CheckIfGameCompleteDone
 
@@ -894,29 +923,7 @@ PlayingSelectPressed:
   STA bufferTimeout
   STA animationClock
   
-   ; Check and update highscore
-  LDA highScore+0
-  CMP playerScore+0
-  BCC HighScoreUpdate		; if highscore MSB < playerscore MSB, update highscore
-  BNE HighScoreEnd			; but, if highscore MSB > playerscore MSB, skip update
-							; (past this point, we know highscore MSB <= playerscore MSB)
-  LDA highScore+1
-  CMP playerScore+1
-  BCC HighScoreUpdate		; else if highscore LSB < playerscore LSB, update highscore
-  JMP HighScoreEnd			; else, skip update
-  
-HighScoreUpdate:
-  LDA playerScore+0
-  STA highScore+0
-  LDA playerScore+1
-  STA highScore+1
-  
-HighScoreEnd:
-  
-  LDA highScore+0
-  STA scoreLo
-  LDA highScore+1
-  STA scoreHi
+  JSR UpdateHighScoreValues
   
   LDA #$C0
   STA (SCORE_RAM+1)
@@ -957,12 +964,40 @@ GamesClosed:
   
   JSR LoadSongPalette ; LoadPalette9
   
-  JSR LoadAIDS
+  JSR LoadAIDSBackground
   
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
 
   JMP PlayAidsTrack
+
+
+UpdateHighScoreValues: 
+   ; Check and update highscore
+  LDA highScore+0
+  CMP playerScore+0
+  BCC HighScoreUpdate		; if highscore MSB < playerscore MSB, update highscore
+  BNE HighScoreEnd			; but, if highscore MSB > playerscore MSB, skip update
+							; (past this point, we know highscore MSB <= playerscore MSB)
+  LDA highScore+1
+  CMP playerScore+1
+  BCC HighScoreUpdate		; else if highscore LSB < playerscore LSB, update highscore
+  JMP HighScoreEnd			; else, skip update
+  
+HighScoreUpdate:
+  LDA playerScore+0
+  STA highScore+0
+  LDA playerScore+1
+  STA highScore+1
+  
+HighScoreEnd:
+  
+  LDA highScore+0
+  STA scoreLo
+  LDA highScore+1
+  STA scoreHi
+  RTS
+
 
 DisplayHighScore: 
   LDA #$BE 

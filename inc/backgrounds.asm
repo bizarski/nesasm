@@ -718,7 +718,7 @@ LoadSong13Background:
   STA pointerLo
   LDA #HIGH(bgmostbottom2)
   STA pointerHi
-
+  
   LDA #$80
   STA tmp 
   JSR LoadXRowsNametable
@@ -737,7 +737,7 @@ LoadSong13Background:
 
   RTS 
 
-LoadAIDS: 
+LoadAIDSBackground: 
   JSR SwitchToBgBank
   JSR StartWritingBG
   
@@ -759,11 +759,11 @@ LoadAIDSLettersLoop
   JSR AddAllBlackAttributes
   RTS 
 
-LoadYouWin: 
+LoadYouWinBackground: 
   JSR SwitchToBgBank
   JSR StartWritingBG
   
-  LDA #$1C
+  LDA #$12
   STA tmp
   JSR LoadXRowsBlack
   
@@ -775,17 +775,41 @@ LoadWinLettersLoop
   CPX #$20
   BNE LoadWinLettersLoop
   
-  LDA #$1E
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  
+  LDA #low(congratsbody)
+  STA pointerLo
+  LDA #HIGH(congratsbody)
+  STA pointerHi
+
+  LDA #$E0
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
+  LDA #$20
+  STA tmp 
+  JSR LoadXRowsNametable
+
+  LDA #$16
   STA tmp
   JSR LoadXRowsBlack
-  JSR AddAllBlackAttributes
+
+  LDA #low(congratsattr)
+  STA pointerLo
+  LDA #HIGH(congratsattr)
+  STA pointerHi
+
+  LDA #$40
+  STA tmp 
+  JSR LoadXRowsNametable
   RTS 
 
-LoadYouLose: 
+LoadYouLoseBackground: 
   JSR SwitchToBgBank
   JSR StartWritingBG
   
-  LDA #$1C
+  LDA #$12
   STA tmp
   JSR LoadXRowsBlack
   
@@ -797,10 +821,34 @@ LoadLoseLettersLoop
   CPX #$20
   BNE LoadLoseLettersLoop
   
-  LDA #$1E
+  JSR LoadBlackLine
+  JSR LoadBlackLine
+  
+  LDA #low(congratsbody)
+  STA pointerLo
+  LDA #HIGH(congratsbody)
+  STA pointerHi
+
+  LDA #$E0
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
+  LDA #$20
+  STA tmp 
+  JSR LoadXRowsNametable
+  
+  LDA #$16
   STA tmp
   JSR LoadXRowsBlack
-  JSR AddAllBlackAttributes
+
+  LDA #low(congratsattr)
+  STA pointerLo
+  LDA #HIGH(congratsattr)
+  STA pointerHi
+
+  LDA #$40
+  STA tmp 
+  JSR LoadXRowsNametable
   RTS 
 
 AddAllBlackAttributes: 

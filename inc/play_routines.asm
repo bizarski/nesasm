@@ -78,7 +78,7 @@ PlayTrack10:
   STA playingSongNumber
   LDA #HERO_FREDDY
   STA currentHero
-  LDA #1 ; TODO: revert back to 99
+  LDA #99
   STA playerLives
   JSR LoadSongPalette ; LoadPalette1
   JSR LoadSong10Background
@@ -117,12 +117,6 @@ PlayAidsTrack:
   JSR AS_StartPlayingCurrentTrack
   JMP GameEngineDone 
   
-PlayGameDoneTrack: 
-  LDA #$0F
-  STA playingSongNumber
-  JSR AS_StartPlayingCurrentTrack
-  JMP GameEngineDone 
-  
 LoadSparxHero: 
   LDA #HERO_SPARX
   STA currentHero
@@ -135,14 +129,14 @@ songPalettesLB:
   .db low(bgpalette), low(bgpalette2), low(bgpalette), low(bgpalette4)
   .db low(bgpalette5), low(bgpalette6), low(bgpalette), low(bgpalette)
   .db low(bgpalette9), low(bgpalette), low(bgpalette11), low(bgpalette)
-  .db low(bgpalette13) 
+  .db low(bgpalette13), low(bgpalette), low(bgpalette)
   
 songPalettesHB: 
   .db HIGH(bgpalette9) ; menu 
   .db HIGH(bgpalette), HIGH(bgpalette2), HIGH(bgpalette), HIGH(bgpalette4)
   .db HIGH(bgpalette5), HIGH(bgpalette6), HIGH(bgpalette), HIGH(bgpalette)
   .db HIGH(bgpalette9), HIGH(bgpalette), HIGH(bgpalette11), HIGH(bgpalette)
-  .db HIGH(bgpalette13) 
+  .db HIGH(bgpalette13), HIGH(bgpalette), HIGH(bgpalette)
 
 completionMap: 
   .byte $00, %00000001, %00000010, %00000100, %00001000, %00010000 ; 1, 2, 3, 4, 5
