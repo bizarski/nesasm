@@ -355,9 +355,6 @@ AnimateObjs:
   LDA OBJ_RAM
   CMP #$C0
   BEQ c_DelaySpawn
-  LDA currentSong
-  CMP #TRACK_4
-  BEQ DontDelayObj ; don't check for beat hit 
   LDA hitBeatTimeout
   CMP #$00
   BNE c_DelaySpawn

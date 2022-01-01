@@ -435,6 +435,18 @@ OnError:
   JSR DecrementScoreDisplay
   JSR MakeOops
   JSR MakeGuinnessOoops
+
+  LDA currentSong
+  CMP #TRACK_4
+  BNE OnError_SkipObjectInteraction
+  
+  LDA #$20
+  STA hitBeatTimeout
+  LDA #$00
+  STA nextFrame3
+  
+OnError_SkipObjectInteraction: 
+  
   RTS
 
 MakeOops:
@@ -446,6 +458,7 @@ MakeOops:
   STA (HERO_RAM+1+4*3)
   LDA #$0C
   STA faceTimeout
+  
   RTS
 
 MakeWoo: 
@@ -465,13 +478,22 @@ MakeGuinnessOoops:
 
 OnBeat: 
   JSR IncrementScoreDisplay
+  
   LDA gameFlags
   ORA #HIT_ON_BEAT
   STA gameFlags
+  
+  LDA currentSong
+  CMP #TRACK_4
+  BEQ OnBeat_SkipObjectInteraction
+  
   LDA #$20
   STA hitBeatTimeout
   LDA #$00
   STA nextFrame3
+  
+OnBeat_SkipObjectInteraction: 
+  
   JSR MakeWoo
   RTS 
 
@@ -514,12 +536,12 @@ PlaySampleA:
   LDA hitBeatTimeout
   BNE a_Neutral ; not zero -- already hit on beat 
 
-  LDA PAUSE_RAM 
-  CMP #$FF
-  BEQ a_OnError 
+;  LDA PAUSE_RAM 
+;  CMP #$FF
+;  BEQ a_OnError 
   
-  LDA VOLUME_RAM
-  BEQ a_OnError
+;  LDA VOLUME_RAM
+;  BEQ a_OnError
   
   LDA NOISE_RAM
   CMP #$1D
@@ -528,7 +550,7 @@ PlaySampleA:
   BEQ a_OnBeat
   CMP #$11
   BEQ a_OnBeat
-  JMP a_Neutral
+  JMP a_OnError
 
 a_OnBeat: 
   JSR OnBeat
@@ -588,12 +610,12 @@ PlaySampleB:
   LDA hitBeatTimeout
   BNE b_Neutral
   
-  LDA PAUSE_RAM 
-  CMP #$FF
-  BEQ b_OnError
+ ; LDA PAUSE_RAM 
+ ; CMP #$FF
+ ; BEQ b_OnError
   
-  LDA VOLUME_RAM
-  BEQ b_OnError
+ ; LDA VOLUME_RAM
+ ; BEQ b_OnError
   
   LDA NOISE_RAM
   CMP #$1C
@@ -602,7 +624,7 @@ PlaySampleB:
   BEQ b_OnBeat
   CMP #$15
   BEQ b_OnBeat
-  JMP b_Neutral
+  JMP b_OnError
 
 b_OnBeat: 
   JSR OnBeat
