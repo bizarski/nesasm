@@ -791,7 +791,20 @@ LoadWinLettersLoop
   STA tmp 
   JSR LoadXRowsNametable
 
-  LDA #$16
+  LDA #$0A
+  STA tmp
+  JSR LoadXRowsBlack
+
+  LDA #low(highscoretext)
+  STA pointerLo
+  LDA #HIGH(highscoretext)
+  STA pointerHi
+
+  LDA #$20
+  STA tmp 
+  JSR LoadXRowsNametable
+
+  LDA #$0A
   STA tmp
   JSR LoadXRowsBlack
 
@@ -837,7 +850,20 @@ LoadLoseLettersLoop
   STA tmp 
   JSR LoadXRowsNametable
   
-  LDA #$16
+  LDA #$0A
+  STA tmp
+  JSR LoadXRowsBlack
+
+  LDA #low(highscoretext)
+  STA pointerLo
+  LDA #HIGH(highscoretext)
+  STA pointerHi
+
+  LDA #$20
+  STA tmp 
+  JSR LoadXRowsNametable
+
+  LDA #$0A
   STA tmp
   JSR LoadXRowsBlack
 

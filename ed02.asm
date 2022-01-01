@@ -817,7 +817,6 @@ CheckIfGameComplete:
   BNE NoCompletion
  
   JSR UpdateHighScoreValues
-  JSR HighScorePositionOnMenu
   
   LDA gameFlags
   ORA #GAME_COMPLETE
@@ -849,6 +848,7 @@ YouLose:
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
   
+  JSR HighScorePositionOnMenu
   JSR AS_StartPlayingCurrentTrack
   JMP GameEngineDone 
 
@@ -862,6 +862,7 @@ YouWin:
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
   
+  JSR HighScorePositionOnMenu
   JSR AS_StartPlayingCurrentTrack
   JMP GameEngineDone 
 NoCompletion: 
