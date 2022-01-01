@@ -292,6 +292,7 @@ EngineGameComplete:
   BEQ EngineGameComplete_GoToInitTrack
   
   JSR PLAY_ADDRESS
+  JMP GameEngineDone
 
 EngineGameComplete_GoToInitTrack: 
   JMP InitTrack
@@ -425,9 +426,6 @@ CheckPlayerBonusFlag:
   JSR ResetBonusFlag
   JSR ResetHitDetect
   JSR IncrementScoreDisplay
-  JSR IncrementScoreDisplay
-  JSR IncrementScoreDisplay
-  JSR IncrementScoreDisplay  
   JSR IncrementScoreDisplay
 PlayerNoBonus: 
   RTS 
@@ -816,6 +814,7 @@ CheckIfGameComplete:
   BNE NoCompletion
  
   JSR UpdateHighScoreValues
+  JSR HighScorePositionOnMenu
   
   LDA gameFlags
   ORA #GAME_COMPLETE
@@ -827,16 +826,16 @@ CheckIfGameComplete:
   JSR AS_StopMusic
   
 CheckHighScore: 
-  LDA scoreLo
+  LDA (highScore+0)
   CMP #$01
   BCC YouLose
   BEQ ContinueCheckHighScore
   BCS YouWin
 ContinueCheckHighScore: 
-  LDA scoreHi
+  LDA (highScore+1)
   CMP #$F4
   BCC YouLose
-  JMP YouWin
+  JMP YouWin ; high score over 500
 YouLose:
   LDA #$0E ; loser music
   STA playingSongNumber
@@ -924,6 +923,7 @@ PlayingSelectPressed:
   STA animationClock
   
   JSR UpdateHighScoreValues
+  JSR HighScorePositionOnMenu
   
   LDA #$C0
   STA (SCORE_RAM+1)
@@ -974,32 +974,33 @@ GamesClosed:
 
 UpdateHighScoreValues: 
    ; Check and update highscore
-  LDA highScore+0
-  CMP playerScore+0
+  LDA (highScore+0)
+  CMP (playerScore+0)
   BCC HighScoreUpdate		; if highscore MSB < playerscore MSB, update highscore
   BNE HighScoreEnd			; but, if highscore MSB > playerscore MSB, skip update
 							; (past this point, we know highscore MSB <= playerscore MSB)
-  LDA highScore+1
-  CMP playerScore+1
+  LDA (highScore+1)
+  CMP (playerScore+1)
   BCC HighScoreUpdate		; else if highscore LSB < playerscore LSB, update highscore
   JMP HighScoreEnd			; else, skip update
   
 HighScoreUpdate:
-  LDA playerScore+0
-  STA highScore+0
-  LDA playerScore+1
-  STA highScore+1
+  LDA (playerScore+0)
+  STA (highScore+0)
+  LDA (playerScore+1)
+  STA (highScore+1)
   
 HighScoreEnd:
-  
+
   LDA highScore+0
-  STA scoreLo
-  LDA highScore+1
   STA scoreHi
+  LDA highScore+1
+  STA scoreLo
+
   RTS
 
 
-DisplayHighScore: 
+HighScorePositionOnMenu: 
   LDA #$BE 
   STA SCORE_RAM
   STA (SCORE_RAM+4)
@@ -1010,25 +1011,22 @@ DisplayHighScore:
   STA (SCORE_RAM+3+4)
   LDA #$A2
   STA (SCORE_RAM+3+4*2)
- 
-  LDA scoreHi
-  CMP #$00
-  BNE ScoreLoopSmall
+  RTS
+  
+DisplayHighScore: 
   LDA scoreLo
   CMP #$00
-  BEQ DisplayHighScoreDone
-  CMP #$FF 
-  BEQ DisplayHighScoreDone
-ScoreLoopSmall:
-  JSR IncrementScoreDisplay
-  DEC scoreHi
+  BNE DisplayHighScoreInc
   LDA scoreHi
   CMP #$00
-  BNE ScoreLoopSmall
-  DEC (scoreLo) 
-  LDA (scoreLo) 
-  CMP #$FF 
-  BNE ScoreLoopSmall
+  BEQ DisplayHighScoreDone
+DisplayHighScoreInc:
+  JSR IncrementScoreDisplay
+  DEC scoreLo
+  LDA scoreLo
+  CMP #$FF
+  BNE DisplayHighScoreDone
+  DEC scoreHi 
 DisplayHighScoreDone:   
   RTS 
 
