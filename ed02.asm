@@ -150,6 +150,8 @@ cd2:
   STA playerScore+1					; reset score
   STA highScore+0
   STA highScore+1					; reset score
+  STA scoreLo
+  STA scoreHi
     
   JSR LoadSongPalette
   JSR LoadSprites  
@@ -167,6 +169,7 @@ cd2:
   STA $2000
 
   JSR LoadMenuBackground
+  JSR HighScorePositionOnMenu
 
   LDA #PPU_SETUP ; enable sprites, enable background
   STA $2001
