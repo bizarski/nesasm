@@ -256,6 +256,20 @@ EngineTitle_ArrowMoveDown:
 ;;;;;;; game over state 
 
 EngineGameOver:   
+  LDA playingSongNumber
+  CMP #$0E
+  BNE EngineGameOver_NoScroll
+
+  JSR AdvanceXPos
+
+  LDA #$00
+  STA $2005		; first write: no horizontal scrolling
+  LDA counter
+  STA $2005		; second write: advance vertical scroll to ppu_scroll
+  LDA #PPU_SETUP ; enable sprites, enable background
+  STA $2001
+
+EngineGameOver_NoScroll:
   LDA buttons1 
   AND #BTN_SELECT
   BNE EngineGameOver_Reset
@@ -974,7 +988,8 @@ GamesClosed:
   STA $2001
 
   JMP PlayAidsTrack
-
+  
+;;;;;;;;;;;
 
 UpdateHighScoreValues: 
    ; Check and update highscore

@@ -740,10 +740,20 @@ LoadSong13Background:
 LoadAIDSBackground: 
   JSR SwitchToBgBank
   JSR StartWritingBG
-  
-  LDA #$1C
-  STA tmp
-  JSR LoadXRowsBlack
+
+  LDA #low(viruses1)
+  STA pointerLo
+  LDA #HIGH(viruses1)
+  STA pointerHi
+
+  LDA #$E0
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
+  LDA #$E0
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
   
   LDX #$00
 LoadAIDSLettersLoop
@@ -753,9 +763,23 @@ LoadAIDSLettersLoop
   CPX #$20
   BNE LoadAIDSLettersLoop
   
-  LDA #$1E
-  STA tmp
-  JSR LoadXRowsBlack
+  LDA #low(viruses2)
+  STA pointerLo
+  LDA #HIGH(viruses2)
+  STA pointerHi
+
+  LDA #$E0
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
+  LDA #$E0
+  STA tmp 
+  JSR LoadXRowsNametable
+  INC pointerHi
+  LDA #$20
+  STA tmp 
+  JSR LoadXRowsNametable
+  
   JSR AddAllBlackAttributes
   RTS 
 
