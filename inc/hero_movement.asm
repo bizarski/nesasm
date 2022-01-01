@@ -336,7 +336,7 @@ IncrementScoreDisplay:
   CMP #($C9+$01)							; check if 1st digit went past 9
   BNE IncrementScoreDisplayDone			; if not, we're done
   
-  LDA #$C0								; if so (unlikely), reset all digits to 0, reset playerscore, and store 999 in highscore
+  LDA #$C9								; if so (unlikely), reset all digits to 0, reset playerscore, and store 999 in highscore
   STA (SCORE_RAM+4*2+1)
   STA (SCORE_RAM+4+1)
   STA (SCORE_RAM+1)
@@ -348,6 +348,14 @@ IncrementScoreDisplayDone:
   CMP #$00					; check if LSB has wrapped to 0
   BNE IncrementPlayerScoreDone
   INC playerScore+0			; if so, increment MSB
+  LDA playerScore+0
+  CMP #$00
+  BNE IncrementPlayerScoreDone
+  
+  LDA #$FF 
+  STA playerScore+0
+  STA playerScore+1
+  
 IncrementPlayerScoreDone: 
 
   RTS
