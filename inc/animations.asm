@@ -168,13 +168,17 @@ AnimateUFO:
   BCC SkipUFO
   CMP #$19
   BCS SkipUFO
-  
-  JMP SkipDelaySpawn
 
 SkipDelaySpawn: 
   LDA (UFO_RAM)
   CMP #$25 
   BEQ SkipResetUFO
+  
+  JSR IncrementScoreDisplay
+  JSR IncrementScoreDisplay
+  JSR IncrementScoreDisplay
+  JSR IncrementScoreDisplay
+  JSR IncrementScoreDisplay
   
   LDA #$25 
   STA (UFO_RAM)
