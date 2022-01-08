@@ -271,15 +271,16 @@ DelaySpawnRedPill:
   CMP #$A0
   BCS SkipFallRedPill		; greater than 
   
+  LDA (BLUEPILL_RAM+3)
+  CMP xpos 
+  BEQ SkipFallRedPill
+  
   LDA (KICK_RAM+3)
   CMP #$F0 
   BCS DontDelay2
   JMP SkipFallRedPill
   
-InitializeXPositionRed:     
-  LDA (BLUEPILL_RAM+3)
-  CMP xpos 
-  BEQ r_SkipFall
+InitializeXPositionRed:     ; TODO: fix glitch 
   LDA xpos
   STA (REDPILL_RAM+3)
   STA (REDPILL_RAM+3+4)
@@ -290,9 +291,6 @@ InitializeYPositionRed:
   STA (REDPILL_RAM+0)
   STA (REDPILL_RAM+0+4)
   JMP r_PillInitX
-
-r_SkipFall: 
-  JMP SkipFallRedPill
 
 AnimatePills2: 
   LDA REDPILL_RAM
