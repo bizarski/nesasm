@@ -199,9 +199,14 @@ GameEngine:
   BIT gameFlags 
   BNE GameEngine_Complete
   
+  LDA #MUSIC_ONLY
+  BIT soundFlags
+  BNE GameEngine_Title
+  
   LDA playingSongNumber
   CMP #$00
   BNE GameEngine_Playing	; need to use JMP here because relative addressing used by BEQ goes out of range
+GameEngine_Title:
   JMP EngineTitle			; game is displaying title screen
 GameEngine_Playing:
   JMP EnginePlaying  
@@ -237,11 +242,29 @@ EngineTitle:
   AND #BTN_DOWN 
   BNE EngineTitle_ArrowMoveDown
   LDA buttons1 
+  AND #BTN_A
+  BNE EngineTitle_PlayMusic
+  LDA buttons1 
+  AND #BTN_B
+  BNE EngineTitle_StopMusic
+  LDA buttons1 
   AND #%00000000
-  BNE DoNothing 
+  BNE EngineTitle_DoNothing 
   LDA #$00
   STA buttonlatch
-DoNothing: 
+  
+;;;;;;;;;;;;;;;;;;;;;;;; music 
+
+  LDA playingSongNumber
+  BEQ EngineTitle_DoNothing
+
+  LDA #MUSIC_INITIALIZED
+  BIT soundFlags
+  BEQ EngineTitle_GoToInitTrack
+  
+  JSR PLAY_ADDRESS
+  
+EngineTitle_DoNothing: 
   JMP GameEngineDone
  
 EngineTitle_TitleStartPressed: 
@@ -253,6 +276,16 @@ EngineTitle_ArrowMoveUp:
 EngineTitle_ArrowMoveDown: 
   JMP ArrowMoveDown
  
+EngineTitle_PlayMusic: 
+  JMP PlayOnlyMusic
+  
+EngineTitle_StopMusic: 
+  JSR AS_StopMusic
+  JMP GameEngineDone
+ 
+EngineTitle_GoToInitTrack: 
+  JMP InitTrack 
+
 ;;;;;;; game over state 
 
 EngineGameOver:   
@@ -849,7 +882,7 @@ CheckHighScore:
   BCS YouWin
 ContinueCheckHighScore: 
   LDA (highScore+1)
-  CMP #$F4
+  CMP #$2C
   BCC YouLose
   JMP YouWin ; high score over 500
 YouLose:
@@ -988,76 +1021,8 @@ GamesClosed:
   STA $2001
 
   JMP PlayAidsTrack
-  
-;;;;;;;;;;;
 
-UpdateHighScoreValues: 
-   ; Check and update highscore
-  LDA (highScore+0)
-  CMP (playerScore+0)
-  BCC HighScoreUpdate		; if highscore MSB < playerscore MSB, update highscore
-  BNE HighScoreEnd			; but, if highscore MSB > playerscore MSB, skip update
-							; (past this point, we know highscore MSB <= playerscore MSB)
-  LDA (highScore+1)
-  CMP (playerScore+1)
-  BCC HighScoreUpdate		; else if highscore LSB < playerscore LSB, update highscore
-  JMP HighScoreEnd			; else, skip update
-  
-HighScoreUpdate:
-  LDA (playerScore+0)
-  STA (highScore+0)
-  LDA (playerScore+1)
-  STA (highScore+1)
-  
-HighScoreEnd:
-
-  LDA highScore+0
-  STA scoreHi
-  LDA highScore+1
-  STA scoreLo
-
-  RTS
-
-
-HighScorePositionOnMenu: 
-  LDA #$BE 
-  STA SCORE_RAM
-  STA (SCORE_RAM+4)
-  STA (SCORE_RAM+4*2)
-  LDA #$92
-  STA (SCORE_RAM+3)
-  LDA #$9A
-  STA (SCORE_RAM+3+4)
-  LDA #$A2
-  STA (SCORE_RAM+3+4*2)
-  RTS
-  
-DisplayHighScore: 
-  LDA scoreLo
-  CMP #$00
-  BNE DisplayHighScoreInc
-  LDA scoreHi
-  CMP #$00
-  BEQ DisplayHighScoreDone
-DisplayHighScoreInc:
-  JSR IncrementScoreDisplay
-  DEC scoreLo
-  LDA scoreLo
-  CMP #$FF
-  BNE DisplayHighScoreDone
-  DEC scoreHi 
-DisplayHighScoreDone:   
-  RTS 
-
-ResetPlayerScore:
-  LDA #$C0
-  STA (SCORE_RAM+1)
-  STA (SCORE_RAM+1+4)
-  STA (SCORE_RAM+1+4*2)
-  LDA #$00
-  STA playerScore+0
-  STA playerScore+1
-  RTS 
+;;;;;;;;;;;;;;;  
 
 ResetPPU: 
   LDA #PPU_SETUP
@@ -1065,10 +1030,13 @@ ResetPPU:
   STA $2001
   RTS
 
-ArrowMoveUp: 
+ArrowMoveUp:
   LDA ARROW_RAM
   CMP #MENU_X_LIMIT_TOP
   BEQ StopMovingUp
+  
+  JSR AS_StopMusic
+  
   LDA #$00
   CMP buttonlatch
   BEQ StillMovingUp
@@ -1089,6 +1057,9 @@ ArrowMoveDown:
   LDA ARROW_RAM
   CMP #MENU_X_LIMIT_BOTTOM
   BEQ StopMovingDown
+  
+  JSR AS_StopMusic
+  
   LDA #$00
   CMP buttonlatch
   BEQ StillMovingDown
@@ -1104,7 +1075,7 @@ StillMovingDown:
   STA buttonlatch
 StopMovingDown:
   JMP GameEngineDone
-  
+
 ;;;;;;;;;;;;
 
   .bank 31 ; (4/4 last bank/fixed) $E000
@@ -1114,7 +1085,12 @@ StopMovingDown:
 
   .include "inc/animations.asm"
   
-TitleStartPressed: 
+TitleStartPressed:
+  LDA #MUSIC_ONLY
+  EOR #%11111111
+  AND soundFlags      
+  STA soundFlags
+ 
   JSR SpratzDirRight
 
   JSR ResetHeroHitFlag
@@ -1188,6 +1164,160 @@ goto_FinishPlayTrack:
   JSR DisplayLives
   JSR AS_StartPlayingCurrentTrack
   JMP GameEngineDone
+
+
+PlayOnlyMusic:
+  LDA #MUSIC_ONLY
+  ORA soundFlags
+  STA soundFlags 
+ 
+  LDA currentSong
+  CMP #TRACK_1
+  BEQ mo_PlayTrack1 
+  CMP #TRACK_2
+  BEQ mo_PlayTrack2
+  CMP #TRACK_3
+  BEQ mo_PlayTrack3
+  CMP #TRACK_4
+  BEQ mo_PlayTrack4
+  CMP #TRACK_5
+  BEQ mo_PlayTrack5
+  CMP #TRACK_6
+  BEQ mo_PlayTrack6
+  CMP #TRACK_7
+  BEQ mo_PlayTrack7
+  CMP #TRACK_8
+  BEQ mo_PlayTrack8
+  CMP #TRACK_9
+  BEQ mo_PlayTrack9
+  CMP #TRACK_10
+  BEQ mo_PlayTrack10
+  CMP #TRACK_11
+  BEQ mo_PlayTrack11
+  CMP #TRACK_12
+  BEQ mo_PlayTrack12
+  CMP #TRACK_13
+  BEQ mo_PlayTrack13
+  JMP GameEngineDone
+
+mo_PlayTrack1:
+  LDA #$01
+  JMP mo_FinishPlayTrack
+mo_PlayTrack2:
+  LDA #$02
+  JMP mo_FinishPlayTrack
+mo_PlayTrack3:
+  LDA #$03
+  JMP mo_FinishPlayTrack
+mo_PlayTrack4:
+  LDA #$04
+  JMP mo_FinishPlayTrack
+mo_PlayTrack5:
+  LDA #$05
+  JMP mo_FinishPlayTrack
+mo_PlayTrack6:
+  LDA #$06
+  JMP mo_FinishPlayTrack
+mo_PlayTrack7:
+  LDA #$07
+  JMP mo_FinishPlayTrack
+mo_PlayTrack8:
+  LDA #$08
+  JMP mo_FinishPlayTrack
+mo_PlayTrack9:
+  LDA #$09
+  JMP mo_FinishPlayTrack
+mo_PlayTrack10:
+  LDA #$0A
+  JMP mo_FinishPlayTrack
+mo_PlayTrack11:
+  LDA #$0B
+  JMP mo_FinishPlayTrack
+mo_PlayTrack12:
+  LDA #$0C
+  JMP mo_FinishPlayTrack
+mo_PlayTrack13:
+  LDA #$0D
+  JMP mo_FinishPlayTrack
+mo_FinishPlayTrack:
+  STA playingSongNumber 
+  JSR AS_StartPlayingCurrentTrack
+  JMP GameEngineDone  
+  
+
+;;;;;;;;;;;
+
+UpdateHighScoreValues: 
+   ; Check and update highscore
+  LDA (highScore+0)
+  CMP (playerScore+0)
+  BCC HighScoreUpdate		; if highscore MSB < playerscore MSB, update highscore
+  BNE HighScoreEnd			; but, if highscore MSB > playerscore MSB, skip update
+							; (past this point, we know highscore MSB <= playerscore MSB)
+  LDA (highScore+1)
+  CMP (playerScore+1)
+  BCC HighScoreUpdate		; else if highscore LSB < playerscore LSB, update highscore
+  JMP HighScoreEnd			; else, skip update
+  
+HighScoreUpdate:
+  LDA (playerScore+0)
+  STA (highScore+0)
+  LDA (playerScore+1)
+  STA (highScore+1)
+  
+HighScoreEnd:
+
+  LDA highScore+0
+  STA scoreHi
+  LDA highScore+1
+  STA scoreLo
+
+  RTS
+
+
+HighScorePositionOnMenu: 
+  LDA #$BE 
+  STA SCORE_RAM
+  STA (SCORE_RAM+4)
+  STA (SCORE_RAM+4*2)
+  LDA #$92
+  STA (SCORE_RAM+3)
+  LDA #$9A
+  STA (SCORE_RAM+3+4)
+  LDA #$A2
+  STA (SCORE_RAM+3+4*2)
+  RTS
+  
+DisplayHighScore: 
+  LDA scoreLo
+  CMP #$00
+  BNE DisplayHighScoreInc
+  LDA scoreHi
+  CMP #$00
+  BEQ DisplayHighScoreDone
+DisplayHighScoreInc:
+  JSR IncrementScoreDisplay
+  DEC scoreLo
+  LDA scoreLo
+  CMP #$FF
+  BNE DisplayHighScoreDone
+  DEC scoreHi 
+DisplayHighScoreDone:   
+  RTS 
+
+ResetPlayerScore:
+  LDA #$C0
+  STA (SCORE_RAM+1)
+  STA (SCORE_RAM+1+4)
+  STA (SCORE_RAM+1+4*2)
+  LDA #$00
+  STA playerScore+0
+  STA playerScore+1
+  RTS 
+
+
+;;;;;;;;;;;;;;;;;
+  
   
 ShowIndicatorSprites: 
   LDX #$00

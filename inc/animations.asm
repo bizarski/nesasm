@@ -264,6 +264,13 @@ DelaySpawnRedPill:
   LDA #$F0
   STA (REDPILL_RAM+0)
   STA (REDPILL_RAM+4)
+  
+  LDA (BLUEPILL_RAM+0)	; top part of pill 
+  CMP #$74
+  BCC SkipFallRedPill		; less than
+  CMP #$A0
+  BCS SkipFallRedPill		; greater than 
+  
   LDA (KICK_RAM+3)
   CMP #$F0 
   BCS DontDelay2
@@ -279,12 +286,6 @@ InitializeXPositionRed:
   JMP r_PillMove
 
 InitializeYPositionRed:     
-  LDA (BLUEPILL_RAM+0)
-  CMP #$64
-  BCC SkipFallRedPill
-  CMP #$A0
-  BCS SkipFallRedPill
-  
   LDA #$44
   STA (REDPILL_RAM+0)
   STA (REDPILL_RAM+0+4)
